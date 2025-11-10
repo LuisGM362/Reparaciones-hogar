@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/LuisGM362/Reparaciones-hogar/issues"
   },
-  "homepage": "https://github.com/LuisGM362/Reparaciones-hogar#readme"
+  "homepage": "https://github.com/LuisGM362/Reparaciones-hogar#readme",
+  "dependencies": {
+    "express": "^5.1.0"
+  }
 }
