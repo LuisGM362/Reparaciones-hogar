@@ -1,0 +1,19 @@
+{
+  "name": "node.js",
+  "version": "1.0.0",
+  "description": "reparaciones hogar",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LuisGM362/Reparaciones-hogar.git"
+  },
+  "author": "hector luis fernando ariza",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/LuisGM362/Reparaciones-hogar/issues"
+  },
+  "homepage": "https://github.com/LuisGM362/Reparaciones-hogar#readme"
+}
