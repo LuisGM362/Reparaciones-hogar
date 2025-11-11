@@ -1,22 +1,34 @@
-import logo from './logo.svg';
+import React, { useState } from 'react';
 import './App.css';
 
 function App() {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    // Aquí puedes agregar la lógica para autenticar al usuario
+    console.log('Usuario:', username);
+    console.log('Contraseña:', password);
+  };
+
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+        <h1>Iniciar sesión</h1>
+        <form onSubmit={handleSubmit}>
+          <label>
+            Usuario:
+            <input type="text" value={username} onChange={(event) => setUsername(event.target.value)} />
+          </label>
+          <br />
+          <label>
+            Contraseña:
+            <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} />
+          </label>
+          <br />
+          <button type="submit">Iniciar sesión</button>
+        </form>
       </header>
     </div>
   );
