@@ -59,6 +59,11 @@ export default function AdminPanel({ onLogout }) {
   const [editingClient, setEditingClient] = useState(null); // client object when editing
   const [notifyOnSave, setNotifyOnSave] = useState(true);
 
+  // estado para agregar presupuestos a un pedido
+  const [budgetOrderId, setBudgetOrderId] = useState('');
+  const [budgetAmount, setBudgetAmount] = useState('');
+  const [budgetNote, setBudgetNote] = useState('');
+
   const ordersByStatus = orders.filter(o => o.status === activeStatus);
 
   const openClientModal = (client = null) => {
@@ -185,6 +190,38 @@ export default function AdminPanel({ onLogout }) {
     sendWhatsApp(client.phone, `Hola ${client.fullName}, consulta desde panel admin.`);
   };
 
+  // agrega un presupuesto al pedido seleccionado (suma al total y guarda el array de presupuestos)
+  const addPresupuesto = (e) => {
+    e.preventDefault();
+    const id = parseInt(budgetOrderId, 10);
+    const amount = parseFloat(budgetAmount);
+    if (!id || isNaN(amount) || amount <= 0) {
+      setMessage('Seleccione un pedido válido y un monto mayor a 0.');
+      return;
+    }
+    const order = orders.find(o => o.id === id);
+    if (!order) {
+      setMessage('Pedido no encontrado.');
+      return;
+    }
+    const newItem = { amount, note: budgetNote || '', date: new Date().toISOString() };
+    const updated = orders.map(o => {
+      if (o.id !== id) return o;
+      const presupuestos = [...(o.presupuestos || []), newItem];
+      const totalPresupuesto = presupuestos.reduce((s, p) => s + (p.amount || 0), 0);
+      return { ...o, presupuestos, totalPresupuesto };
+    });
+    setOrders(updated);
+    const client = clients.find(c => c.email === order.clientEmail);
+    const phone = client ? client.phone : order.phone;
+    const text = `Se agregó un presupuesto de $${amount.toFixed(2)} al pedido #${id}. Total presupuestos: $${updated.find(u => u.id === id).totalPresupuesto.toFixed(2)}.`;
+    sendWhatsApp(phone, text);
+    setMessage(`Presupuesto agregado a pedido #${id} y notificado por WhatsApp.`);
+    setBudgetOrderId('');
+    setBudgetAmount('');
+    setBudgetNote('');
+  };
+
   return (
     <div className="admin-root" style={{ padding: 20 }}>
       <header style={{ textAlign: 'center', marginBottom: 18 }}>
@@ -261,13 +298,43 @@ export default function AdminPanel({ onLogout }) {
           </div>
 
           <div style={{ marginTop: 16, textAlign: 'center' }}>
-            <h4 style={{ color: 'var(--text)' }}>Crear pedido rápido</h4>
-            <form onSubmit={addOrder} style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
-              <input name="clientEmail" placeholder="email cliente" className="input" style={{ flex: '1 1 200px' }} />
-              <input name="phone" placeholder="teléfono (sin 0 ni +)" className="input" style={{ width: 160 }} />
-              <input name="description" placeholder="Descripción" className="input" style={{ flex: '1 1 240px' }} />
-              <button className="btn submit-btn" type="submit">Crear</button>
+            <h4 style={{ color: 'var(--text)' }}>Agregar presupuesto a un pedido</h4>
+            <form onSubmit={addPresupuesto} style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center' }}>
+              <select
+                value={budgetOrderId}
+                onChange={(e) => setBudgetOrderId(e.target.value)}
+                className="input"
+                style={{ minWidth: 200 }}
+                required
+              >
+                <option value="">Seleccionar pedido</option>
+                {ordersByStatus.map(o => (
+                  <option key={o.id} value={o.id}>#{o.id} — {o.description}</option>
+                ))}
+              </select>
+
+              <input
+                value={budgetAmount}
+                onChange={(e) => setBudgetAmount(e.target.value)}
+                placeholder="Monto (ej. 1500.00)"
+                className="input"
+                style={{ width: 160 }}
+                required
+              />
+
+              <input
+                value={budgetNote}
+                onChange={(e) => setBudgetNote(e.target.value)}
+                placeholder="Nota (opcional)"
+                className="input"
+                style={{ flex: '1 1 240px' }}
+              />
+
+              <button className="btn submit-btn" type="submit">Agregar presupuesto</button>
             </form>
+            <div style={{ marginTop: 8, color: '#cfc6b0' }}>
+              Cada presupuesto se suma al total del pedido y el cliente es notificado por WhatsApp.
+            </div>
           </div>
         </section>
       )}
