@@ -145,7 +145,7 @@ export default function AdminPanel({ onLogout }) {
   };
 
   return (
-    <div style={{ padding: 20 }}>
+    <div className="admin-root" style={{ padding: 20 }}>
       <header style={{ textAlign: 'center', marginBottom: 18 }}>
         <h2 style={{ margin: 0, color: 'var(--gold)' }}>Panel de control — Admin</h2>
         <div style={{ marginTop: 8 }}>
@@ -183,7 +183,7 @@ export default function AdminPanel({ onLogout }) {
             {ordersByStatus.length === 0 ? (
               <div style={{ color: '#cfc6b0', textAlign: 'center' }}>No hay pedidos en esta categoría.</div>
             ) : (
-              <table className="data-table">
+              <table className="data-table orders-table">
                 <thead>
                   <tr>
                     <th>ID</th>
@@ -241,28 +241,29 @@ export default function AdminPanel({ onLogout }) {
           </div>
 
           <div>
-            {clients.map(c => (
-              <div key={c.email} className="client-panel">
-                <div className="client-panel-header" onClick={() => toggleClientPanel(c.email)}>
-                  <div style={{ fontWeight: 700, color: 'var(--gold)' }}>{c.fullName} {c.lastName}</div>
-                  <div className="client-panel-meta">{c.email} · {c.phone}</div>
-                </div>
-
-                {openClientPanels[c.email] && (
-                  <div className="client-panel-body">
-                    <div><strong>Dirección:</strong> {c.address.locality}, {c.address.street} {c.address.number}
-                      {c.address.type === 'departamento' ? ` · Piso ${c.address.floor} · Puerta ${c.address.door}` : ` · Casa`}</div>
-                    <div style={{ marginTop: 8 }}>
-                      <button className="btn demo-btn" onClick={() => contactClient(c)}>Contactar (WhatsApp)</button>
-                      <button className="btn register-btn" style={{ marginLeft: 8 }} onClick={() => {
-                        navigator.clipboard?.writeText(`Usuario: ${c.email}\nContraseña: ${c.password}`);
-                        setMessage('Credenciales copiadas al portapapeles.');
-                      }}>Copiar credenciales</button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
+            <table className="data-table clients-table">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Email</th>
+                  <th>Tel</th>
+                  <th>Dirección</th>
+                </tr>
+              </thead>
+              <tbody>
+                {clients.map(c => (
+                  <tr key={c.email}>
+                    <td className="center-cell">{c.fullName} {c.lastName}</td>
+                    <td className="center-cell">{c.email}</td>
+                    <td className="center-cell">{c.phone}</td>
+                    <td>
+                      {c.address.locality}, {c.address.street} {c.address.number}
+                      {c.address.type === 'departamento' ? ` · Piso ${c.address.floor} · Puerta ${c.address.door}` : ` · Casa`}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </section>
       )}
