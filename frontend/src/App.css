@@ -228,6 +228,67 @@ html,body,#root{
   opacity:0.95;
 }
 
+/* Overlay para mostrar PDF */
+.pdf-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.72);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:1200;
+  padding:20px;
+}
+
+.pdf-container{
+  width:100%;
+  max-width:1000px;
+  height:85vh;
+  background:linear-gradient(180deg, rgba(10,10,10,0.98), rgba(5,5,5,0.98));
+  border-radius:10px;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  border:1px solid rgba(212,175,55,0.12);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.7);
+}
+
+/* iframe que muestra el PDF */
+.pdf-iframe{
+  width:100%;
+  height: calc(100% - 64px); /* espacio para botones */
+  border:0;
+  background:#000;
+}
+
+/* área de botones bajo el PDF */
+.pdf-actions{
+  display:flex;
+  gap:12px;
+  justify-content:center;
+  align-items:center;
+  padding:12px;
+  background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00));
+  border-top:1px solid rgba(255,255,255,0.02);
+}
+
+/* Ajustes para botón volver (usa estilos existentes) */
+.pdf-actions .btn{
+  min-width:160px;
+}
+
+/* Responsive: contenedor ocupa casi toda la pantalla en móviles */
+@media (max-width:640px){
+  .pdf-container{
+    height:92vh;
+    max-width:720px;
+    border-radius:8px;
+  }
+  .pdf-iframe{
+    height: calc(100% - 56px);
+  }
+}
+
 /* Responsive */
 @media (max-width:480px){
   .login-card{

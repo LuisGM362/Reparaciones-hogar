@@ -13,6 +13,7 @@ function Login() {
   const [password, setPassword] = useState('');
   const [authMessage, setAuthMessage] = useState('');
   const [loggedUser, setLoggedUser] = useState(null);
+  const [showPdf, setShowPdf] = useState(false); // <-- nuevo estado
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -36,6 +37,15 @@ function Login() {
     setUsername(user.username);
     setPassword(user.password);
     setAuthMessage(`Autocompletado: ${user.username}`);
+  };
+
+  const openPdf = (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    setShowPdf(true);
+  };
+
+  const closePdf = () => {
+    setShowPdf(false);
   };
 
   return (
@@ -96,16 +106,26 @@ function Login() {
         </button>
 
         <div className="footer">
-          <a
-            className="pdf-btn"
-            href="/carta_presentacion.pdf"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          <button className="pdf-btn" onClick={openPdf}>
             Ver carta de presentación (PDF)
-          </a>
+          </button>
         </div>
       </div>
+
+      {showPdf && (
+        <div className="pdf-overlay" role="dialog" aria-modal="true">
+          <div className="pdf-container">
+            <iframe
+              src="/Reparaciones-para-tu-Hogar.pdf"
+              title="Carta de presentación"
+              className="pdf-iframe"
+            />
+            <div className="pdf-actions">
+              <button className="btn submit-btn" onClick={closePdf}>Volver al inicio</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
