@@ -50,9 +50,12 @@ export default function AdminPanel({ onLogout }) {
   const [message, setMessage] = useState('');
   const [showClientModal, setShowClientModal] = useState(false);
 
+  // new: tabs & accordion state
+  const [activeTab, setActiveTab] = useState('notifications'); // 'notifications' | 'clients'
+  const [openClientPanels, setOpenClientPanels] = useState({}); // { [email]: true }
+
   const ordersByStatus = orders.filter(o => o.status === activeStatus);
 
-  // abrir modal para nuevo cliente
   const openClientModal = () => {
     setShowClientModal(true);
     setMessage('');
@@ -91,14 +94,12 @@ export default function AdminPanel({ onLogout }) {
 
     setClients(prev => [...prev, newClient]);
     setMessage(`Cliente ${email} agregado.`);
-    // notificar por WhatsApp con usuario=email y contraseña
     const text = `Hola ${fullName}, su cuenta en "Reparaciones para tu Hogar" fue creada.\nUsuario: ${email}\nContraseña: ${password}`;
     sendWhatsApp(phone, text);
     form.reset();
     setShowClientModal(false);
   };
 
-  // actualizar estado del pedido y notificar
   const updateOrder = (orderId, newStatus) => {
     setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
     const order = orders.find(o => o.id === orderId);
@@ -135,18 +136,32 @@ export default function AdminPanel({ onLogout }) {
     sendWhatsApp(phone, text);
   };
 
+  const toggleClientPanel = (email) => {
+    setOpenClientPanels(prev => ({ ...prev, [email]: !prev[email] }));
+  };
+
+  const contactClient = (client) => {
+    sendWhatsApp(client.phone, `Hola ${client.fullName}, consulta desde panel admin.`);
+  };
+
   return (
     <div style={{ padding: 20 }}>
       <header style={{ textAlign: 'center', marginBottom: 18 }}>
         <h2 style={{ margin: 0, color: 'var(--gold)' }}>Panel de control — Admin</h2>
         <div style={{ marginTop: 8 }}>
           <button className="btn register-btn" onClick={onLogout} style={{ marginRight: 8 }}>Cerrar sesión</button>
-          <button className="btn submit-btn" onClick={openClientModal}>Agregar cliente</button>
         </div>
       </header>
 
-      <section style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
-        <div style={{ flex: '1 1 640px', maxWidth: 960 }}>
+      {/* Tabs */}
+      <div className="tabs">
+        <button className={`tab ${activeTab === 'notifications' ? 'tab-active' : ''}`} onClick={() => setActiveTab('notifications')}>Notificaciones</button>
+        <button className={`tab ${activeTab === 'clients' ? 'tab-active' : ''}`} onClick={() => setActiveTab('clients')}>Clientes</button>
+      </div>
+
+      {/* Tab content */}
+      {activeTab === 'notifications' && (
+        <section style={{ marginTop: 16 }}>
           <div style={{ marginBottom: 12, textAlign: 'center' }}>
             {STATUS_LIST.map(s => (
               <button
@@ -204,8 +219,8 @@ export default function AdminPanel({ onLogout }) {
             )}
           </div>
 
-          <div style={{ marginTop: 16 }}>
-            <h4 style={{ color: 'var(--text)', textAlign: 'center' }}>Crear pedido rápido</h4>
+          <div style={{ marginTop: 16, textAlign: 'center' }}>
+            <h4 style={{ color: 'var(--text)' }}>Crear pedido rápido</h4>
             <form onSubmit={addOrder} style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
               <input name="clientEmail" placeholder="email cliente" className="input" style={{ flex: '1 1 200px' }} />
               <input name="phone" placeholder="teléfono (sin 0 ni +)" className="input" style={{ width: 160 }} />
@@ -213,42 +228,44 @@ export default function AdminPanel({ onLogout }) {
               <button className="btn submit-btn" type="submit">Crear</button>
             </form>
           </div>
-        </div>
+        </section>
+      )}
 
-        <aside style={{ width: 360, minWidth: 320 }}>
-          <div style={{ marginBottom: 14, textAlign: 'center' }}>
-            <h3 style={{ marginTop: 0, color: 'var(--text)' }}>Clientes ({clients.length})</h3>
+      {activeTab === 'clients' && (
+        <section style={{ marginTop: 16 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <h3 style={{ margin: 0, color: 'var(--text)' }}>Clientes ({clients.length})</h3>
+            <div>
+              <button className="btn submit-btn" onClick={openClientModal}>Agregar cliente</button>
+            </div>
           </div>
 
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Nombre</th>
-                <th>Email</th>
-                <th>Tel</th>
-                <th>Dirección</th>
-              </tr>
-            </thead>
-            <tbody>
-              {clients.map(c => (
-                <tr key={c.email}>
-                  <td className="center-cell">{c.fullName} {c.lastName}</td>
-                  <td className="center-cell">{c.email}</td>
-                  <td className="center-cell">{c.phone}</td>
-                  <td>
-                    {c.address.locality}, {c.address.street} {c.address.number}
-                    {c.address.type === 'departamento' ? ` · Piso ${c.address.floor} · Puerta ${c.address.door}` : ` · Casa`}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div>
+            {clients.map(c => (
+              <div key={c.email} className="client-panel">
+                <div className="client-panel-header" onClick={() => toggleClientPanel(c.email)}>
+                  <div style={{ fontWeight: 700, color: 'var(--gold)' }}>{c.fullName} {c.lastName}</div>
+                  <div className="client-panel-meta">{c.email} · {c.phone}</div>
+                </div>
 
-          <div style={{ marginTop: 12, textAlign: 'center' }}>
-            <button className="btn submit-btn" onClick={openClientModal}>Agregar cliente</button>
+                {openClientPanels[c.email] && (
+                  <div className="client-panel-body">
+                    <div><strong>Dirección:</strong> {c.address.locality}, {c.address.street} {c.address.number}
+                      {c.address.type === 'departamento' ? ` · Piso ${c.address.floor} · Puerta ${c.address.door}` : ` · Casa`}</div>
+                    <div style={{ marginTop: 8 }}>
+                      <button className="btn demo-btn" onClick={() => contactClient(c)}>Contactar (WhatsApp)</button>
+                      <button className="btn register-btn" style={{ marginLeft: 8 }} onClick={() => {
+                        navigator.clipboard?.writeText(`Usuario: ${c.email}\nContraseña: ${c.password}`);
+                        setMessage('Credenciales copiadas al portapapeles.');
+                      }}>Copiar credenciales</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
-        </aside>
-      </section>
+        </section>
+      )}
 
       {message && <div style={{ marginTop: 12, color: '#dcd4c2', textAlign: 'center' }}>{message}</div>}
 

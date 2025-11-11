@@ -410,6 +410,54 @@ header h2, header h3 { text-align:center; }
   .modal{ max-width:90%; }
 }
 
+/* Tabs */
+.tabs{
+  display:flex;
+  gap:8px;
+  justify-content:center;
+  margin-top:12px;
+}
+.tab{
+  background:transparent;
+  color:var(--text);
+  border:1px solid rgba(255,255,255,0.04);
+  padding:8px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:700;
+}
+.tab-active{
+  background: linear-gradient(180deg, rgba(212,175,55,0.12), rgba(212,175,55,0.06));
+  color:var(--gold);
+  border-color: rgba(212,175,55,0.12);
+  box-shadow: 0 6px 18px rgba(212,175,55,0.04);
+}
+
+/* Client accordion panels */
+.client-panel{
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.02);
+  border-radius:8px;
+  margin-bottom:10px;
+  overflow:hidden;
+}
+.client-panel-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:10px;
+  cursor:pointer;
+}
+.client-panel-meta{
+  font-size:13px;
+  color:#dcd4c2;
+}
+.client-panel-body{
+  padding:12px;
+  border-top:1px solid rgba(255,255,255,0.02);
+  background: linear-gradient(180deg, rgba(0,0,0,0.02), transparent);
+}
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);
