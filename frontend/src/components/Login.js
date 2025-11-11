@@ -51,10 +51,12 @@ function Login() {
   return (
     <div className="app-root">
       <div className="login-card">
-        <h2 className="welcome">Bienvenidos a Reparaciones para todo tu Hogar</h2>
+        {/* Texto de bienvenida con estilo diferenciado */}
+        <h2 className="welcome-special">Bienvenidos a Reparaciones — Todo para tu Hogar</h2>
 
         <img src="/logo192.png" alt="Logo" className="logo" />
-        <h1 className="title">Iniciar sesión</h1>
+        {/* Título de login simple */}
+        <h1 className="title-simple">Iniciar sesión</h1>
 
         <div className="demo-info">
           <div className="demo-label">Usuarios pre-cargados (demo):</div>
