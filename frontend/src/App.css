@@ -59,11 +59,11 @@ html,body,#root{
 
 /* Título de bienvenida */
 .welcome{
-  margin: 0 0 14px;
-  font-size:16px;
-  color:var(--text);
-  opacity:0.92;
-  letter-spacing:0.2px;
+  margin: 0 0 10px;
+  font-size:14px;
+  color: #dcd4c2;
+  opacity:0.9;
+  letter-spacing:0.3px;
 }
 
 /* Pie de página dentro de la tarjeta */
@@ -116,10 +116,30 @@ html,body,#root{
 /* Título */
 .title{
   margin:0 0 18px;
-  font-size:22px;
-  letter-spacing:0.3px;
-  color:var(--gold);
-  text-shadow: 0 1px 0 rgba(0,0,0,0.6);
+  font-size:32px;                    /* más grande y destacado */
+  line-height:1;
+  letter-spacing:1px;
+  font-weight:700;
+  /* texto con degradado dorado (mantiene paleta) */
+  background: linear-gradient(90deg, var(--gold), #f3d67a 60%, var(--muted-gold));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  /* brillo sutil y contraste con fondo oscuro */
+  text-shadow: 0 2px 18px rgba(212,175,55,0.06), 0 1px 0 rgba(0,0,0,0.6);
+  padding:6px 12px;
+  display:inline-block;
+  border-radius:8px;
+  border:1px solid rgba(212,175,55,0.06);
+}
+
+/* Ajuste responsivo para el título */
+@media (max-width:480px){
+  .title{
+    font-size:22px;
+    padding:4px 10px;
+    letter-spacing:0.6px;
+  }
 }
 
 /* Form */
