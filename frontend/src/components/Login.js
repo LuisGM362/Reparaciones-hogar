@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import './App.css';
+import '../App.css'; // <- ruta corregida
 
-function App() {
+function Login() {
   // Usuarios precargados (solo para demo / desarrollo)
   const users = [
     { username: 'admin', password: 'admin123', role: 'Administrador' },
@@ -110,4 +110,4 @@ function App() {
   );
 }
 
-export default App;
+export default Login;
