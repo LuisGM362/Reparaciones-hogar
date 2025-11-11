@@ -50,19 +50,36 @@ export default function AdminPanel({ onLogout }) {
   const [message, setMessage] = useState('');
   const [showClientModal, setShowClientModal] = useState(false);
 
-  // new: tabs & accordion state
+  // tabs & panels
   const [activeTab, setActiveTab] = useState('notifications'); // 'notifications' | 'clients'
   const [openClientPanels, setOpenClientPanels] = useState({}); // { [email]: true }
 
+  // modal mode: 'add' | 'edit'
+  const [modalMode, setModalMode] = useState('add');
+  const [editingClient, setEditingClient] = useState(null); // client object when editing
+  const [notifyOnSave, setNotifyOnSave] = useState(true);
+
   const ordersByStatus = orders.filter(o => o.status === activeStatus);
 
-  const openClientModal = () => {
-    setShowClientModal(true);
+  const openClientModal = (client = null) => {
     setMessage('');
+    if (client) {
+      setModalMode('edit');
+      setEditingClient(client);
+      setNotifyOnSave(false); // default: don't notify unless checked
+    } else {
+      setModalMode('add');
+      setEditingClient(null);
+      setNotifyOnSave(true);
+    }
+    setShowClientModal(true);
   };
-  const closeClientModal = () => setShowClientModal(false);
+  const closeClientModal = () => {
+    setShowClientModal(false);
+    setEditingClient(null);
+  };
 
-  const addClientFromModal = (e) => {
+  const addOrEditClientFromModal = (e) => {
     e.preventDefault();
     const form = e.target;
     const fullName = form.fullName.value.trim();
@@ -76,26 +93,50 @@ export default function AdminPanel({ onLogout }) {
     const type = form.type.value;
     const floor = form.floor.value.trim();
     const door = form.door.value.trim();
+    const notify = form.notify?.checked ?? false;
 
     if (!fullName || !lastName || !email || !password || !phone || !locality || !street || !number || !type) {
       setMessage('Complete todos los campos obligatorios.');
       return;
     }
 
+    // Editing
+    if (modalMode === 'edit' && editingClient) {
+      // if email changed and conflicts with another client
+      if (email !== editingClient.email && clients.find(c => c.email === email)) {
+        setMessage('El email ya está registrado por otro cliente.');
+        return;
+      }
+      const updatedClient = {
+        email, password, phone, fullName, lastName,
+        address: { locality, street, number, type, floor: type === 'departamento' ? floor : '', door: type === 'departamento' ? door : '' }
+      };
+      setClients(prev => prev.map(c => c.email === editingClient.email ? updatedClient : c));
+      setMessage(`Cliente ${email} actualizado.`);
+      if (notify) {
+        const text = `Hola ${fullName}, sus datos en "Reparaciones para tu Hogar" fueron actualizados.`;
+        sendWhatsApp(phone, text);
+      }
+      setShowClientModal(false);
+      setEditingClient(null);
+      return;
+    }
+
+    // Adding
     if (clients.find(c => c.email === email)) {
       setMessage('El cliente ya existe.');
       return;
     }
-
     const newClient = {
       email, password, phone, fullName, lastName,
       address: { locality, street, number, type, floor: type === 'departamento' ? floor : '', door: type === 'departamento' ? door : '' }
     };
-
     setClients(prev => [...prev, newClient]);
     setMessage(`Cliente ${email} agregado.`);
-    const text = `Hola ${fullName}, su cuenta en "Reparaciones para tu Hogar" fue creada.\nUsuario: ${email}\nContraseña: ${password}`;
-    sendWhatsApp(phone, text);
+    if (notify) {
+      const text = `Hola ${fullName}, su cuenta en "Reparaciones para tu Hogar" fue creada.\nUsuario: ${email}\nContraseña: ${password}`;
+      sendWhatsApp(phone, text);
+    }
     form.reset();
     setShowClientModal(false);
   };
@@ -277,6 +318,14 @@ export default function AdminPanel({ onLogout }) {
                       >
                         Copiar credenciales
                       </button>
+                      <button
+                        className="btn submit-btn"
+                        style={{ marginLeft: 8 }}
+                        onClick={() => openClientModal(c)}
+                        title="Editar cliente"
+                      >
+                        Editar
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -285,41 +334,49 @@ export default function AdminPanel({ onLogout }) {
           </div>
 
           <div style={{ marginTop: 12, textAlign: 'center' }}>
-            <button className="btn submit-btn" onClick={openClientModal}>Agregar nuevo cliente</button>
+            <button className="btn submit-btn" onClick={() => openClientModal(null)}>Agregar nuevo cliente</button>
           </div>
         </section>
       )}
 
       {message && <div style={{ marginTop: 12, color: '#dcd4c2', textAlign: 'center' }}>{message}</div>}
 
-      {/* Modal para agregar cliente */}
+      {/* Modal para agregar/editar cliente */}
       {showClientModal && (
         <div className="modal-overlay" role="dialog" aria-modal="true">
           <div className="modal">
             <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ margin: 0, color: 'var(--gold)' }}>Agregar cliente</h3>
+              <h3 style={{ margin: 0, color: 'var(--gold)' }}>{modalMode === 'edit' ? 'Editar cliente' : 'Agregar cliente'}</h3>
               <button className="btn register-btn" onClick={closeClientModal}>Cerrar</button>
             </header>
 
-            <form onSubmit={addClientFromModal} style={{ display: 'grid', gap: 8, marginTop: 12 }}>
+            <form onSubmit={addOrEditClientFromModal} style={{ display: 'grid', gap: 8, marginTop: 12 }}>
               <div style={{ display: 'flex', gap: 8 }}>
-                <input name="fullName" placeholder="Nombre completo" className="input" style={{ flex: 1 }} />
-                <input name="lastName" placeholder="Apellido" className="input" style={{ flex: 1 }} />
+                <input name="fullName" placeholder="Nombre completo" className="input" style={{ flex: 1 }}
+                  defaultValue={editingClient?.fullName || ''} />
+                <input name="lastName" placeholder="Apellido" className="input" style={{ flex: 1 }}
+                  defaultValue={editingClient?.lastName || ''} />
               </div>
 
-              <input name="email" placeholder="Email (usuario)" className="input" />
-              <input name="password" placeholder="Contraseña" className="input" />
-              <input name="phone" placeholder="Teléfono (sin 0 ni +)" className="input" />
+              <input name="email" placeholder="Email (usuario)" className="input"
+                defaultValue={editingClient?.email || ''} />
+              <input name="password" placeholder="Contraseña" className="input"
+                defaultValue={editingClient?.password || ''} />
+              <input name="phone" placeholder="Teléfono (sin 0 ni +)" className="input"
+                defaultValue={editingClient?.phone || ''} />
 
               <div style={{ display: 'flex', gap: 8 }}>
-                <input name="locality" placeholder="Localidad" className="input" style={{ flex: 1 }} />
-                <input name="street" placeholder="Calle" className="input" style={{ flex: 1 }} />
-                <input name="number" placeholder="Número" className="input" style={{ width: 100 }} />
+                <input name="locality" placeholder="Localidad" className="input" style={{ flex: 1 }}
+                  defaultValue={editingClient?.address?.locality || ''} />
+                <input name="street" placeholder="Calle" className="input" style={{ flex: 1 }}
+                  defaultValue={editingClient?.address?.street || ''} />
+                <input name="number" placeholder="Número" className="input" style={{ width: 100 }}
+                  defaultValue={editingClient?.address?.number || ''} />
               </div>
 
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                 <label style={{ color: 'var(--text)', marginRight: 8 }}>Tipo:</label>
-                <select name="type" className="input" defaultValue="casa" onChange={(ev) => {
+                <select name="type" className="input" defaultValue={editingClient?.address?.type || 'casa'} onChange={(ev) => {
                   const modal = ev.target.closest('.modal');
                   if (!modal) return;
                   const floor = modal.querySelector('input[name="floor"]');
@@ -336,13 +393,20 @@ export default function AdminPanel({ onLogout }) {
                   <option value="departamento">Departamento</option>
                 </select>
 
-                <input name="floor" placeholder="Piso (si depto)" className="input" style={{ width: 120 }} disabled />
-                <input name="door" placeholder="Puerta (si depto)" className="input" style={{ width: 120 }} disabled />
+                <input name="floor" placeholder="Piso (si depto)" className="input" style={{ width: 120 }}
+                  defaultValue={editingClient?.address?.floor || ''} disabled={!(editingClient?.address?.type === 'departamento')} />
+                <input name="door" placeholder="Puerta (si depto)" className="input" style={{ width: 120 }}
+                  defaultValue={editingClient?.address?.door || ''} disabled={!(editingClient?.address?.type === 'departamento')} />
               </div>
+
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
+                <input type="checkbox" name="notify" defaultChecked={modalMode === 'add' ? true : false} />
+                <span style={{ color: 'var(--text)' }}>Notificar por WhatsApp al guardar</span>
+              </label>
 
               <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 6 }}>
                 <button type="button" className="btn register-btn" onClick={closeClientModal}>Cancelar</button>
-                <button type="submit" className="btn submit-btn">Agregar y notificar por WhatsApp</button>
+                <button type="submit" className="btn submit-btn">{modalMode === 'edit' ? 'Guardar cambios' : 'Agregar y notificar por WhatsApp'}</button>
               </div>
             </form>
           </div>

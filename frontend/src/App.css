@@ -382,6 +382,9 @@ html,body,#root{
 }
 .center-cell{ text-align:center; }
 
+/* Client actions group (buttons) */
+.data-table td .btn { margin: 4px 2px; }
+
 /* Modal */
 .modal-overlay{
   position:fixed;
@@ -643,6 +646,33 @@ header h2, header h3 { text-align:center; }
 
   /* tighten modal paddings for mobile */
   .modal { padding: 12px; max-width: 94%; }
+}
+
+/* When converted to cards on mobile, stack action buttons */
+@media (max-width: 720px) {
+  .data-table tbody td:last-child {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+  }
+  .data-table tbody td:last-child .btn {
+    width: 100%;
+  }
+}
+
+/* Ensure modal inputs full width on small screens */
+@media (max-width: 900px) {
+  .modal form input.input, .modal form select.input {
+    width: 100%;
+  }
+  .modal form div[style*="display: flex"] { flex-direction: column; }
+}
+
+/* small tweak: visible focus for inputs inside modal */
+.modal .input:focus {
+  box-shadow: 0 0 0 3px rgba(212,175,55,0.12);
+  border-color: var(--gold);
 }
 
 @keyframes App-logo-spin {
