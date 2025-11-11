@@ -362,9 +362,8 @@ html,body,#root{
   border-collapse:collapse;
   margin-top:8px;
   background:transparent;
-  overflow:auto;
-  -webkit-overflow-scrolling:touch;
-  display:block;
+  display: table;           /* usar layout de tabla real */
+  table-layout: fixed;      /* columnas ajustan su ancho al contenedor */
 }
 .data-table thead th{
   text-align:center;
@@ -372,6 +371,8 @@ html,body,#root{
   font-size:13px;
   color:var(--gold);
   border-bottom:1px solid rgba(255,255,255,0.04);
+  white-space:normal;
+  word-break:break-word;
 }
 .data-table tbody td{
   padding:10px;
@@ -379,11 +380,29 @@ html,body,#root{
   vertical-align:middle;
   color:var(--text);
   font-size:14px;
+  white-space:normal;
+  word-break:break-word; /* permite que el texto de dirección haga wrap */
 }
-.center-cell{ text-align:center; }
 
-/* Client actions group (buttons) */
-.data-table td .btn { margin: 4px 2px; }
+/* Reduce padding en celdas largas para mejorar ajuste */
+.data-table td, .data-table th { padding-left:8px; padding-right:8px; }
+
+/* Para columnas con contenido largo (dirección) permitir más flexibilidad */
+.clients-table td:nth-child(4) { max-width: 44ch; } /* limita ancho visual y fuerza wrap */
+
+/* Mantener el comportamiento de cards en móvil (<=720px) */
+@media (max-width: 720px) {
+  .data-table thead { display: none; }
+  .data-table tbody tr { display:block; margin-bottom:12px; padding:10px; border-radius:10px; }
+  .data-table tbody td { display:flex; flex-direction:column; align-items:flex-start; padding:8px 6px; }
+  .data-table tbody td::before { display:block; margin-bottom:6px; color:#d4c79a; font-weight:700; }
+  .clients-table tbody td:nth-child(1)::before { content: "Nombre"; }
+  .clients-table tbody td:nth-child(2)::before { content: "Email"; }
+  .clients-table tbody td:nth-child(3)::before { content: "Tel"; }
+  .clients-table tbody td:nth-child(4)::before { content: "Dirección"; }
+  .data-table tbody td:last-child{ display:flex; flex-direction:column; gap:8px; align-items:stretch; }
+  .data-table tbody td .btn{ width:100%; }
+}
 
 /* Modal */
 .modal-overlay{
@@ -648,38 +667,80 @@ header h2, header h3 { text-align:center; }
   .modal { padding: 12px; max-width: 94%; }
 }
 
-/* When converted to cards on mobile, stack action buttons */
+/* Mobile centering & card layout fixes */
 @media (max-width: 720px) {
-  .data-table tbody td:last-child {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    align-items: stretch;
+  /* Asegura que el root del admin ocupe toda la altura y centre su contenido verticalmente */
+  .admin-root{
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
   }
-  .data-table tbody td:last-child .btn {
-    width: 100%;
-  }
-}
 
-/* Ensure modal inputs full width on small screens */
-@media (max-width: 900px) {
-  .modal form input.input, .modal form select.input {
-    width: 100%;
+  /* Header más compacto para móviles */
+  .admin-root header{
+    padding:10px 12px;
   }
-  .modal form div[style*="display: flex"] { flex-direction: column; }
-}
+  .admin-root header h2{ margin:6px 0; }
 
-/* small tweak: visible focus for inputs inside modal */
-.modal .input:focus {
-  box-shadow: 0 0 0 3px rgba(212,175,55,0.12);
-  border-color: var(--gold);
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+  /* Sección principal usa todo el espacio y centra columnas en vertical */
+  .admin-root > section{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:flex-start; /* si quieres centrar verticalmente usa center */
+    gap:12px;
+    padding:6px 0 16px;
+    box-sizing:border-box;
   }
-  to {
-    transform: rotate(360deg);
+
+  /* Contenedores internos ocupan 100% con un padding lateral para evitar que el texto quede pegado */
+  .admin-root > section > div:first-child,
+  .admin-root aside{
+    width:100%;
+    max-width:980px;
+    padding:0 12px;
+    box-sizing:border-box;
+  }
+
+  /* Cards: alinear contenido arriba y apilar etiquetas/valores verticalmente */
+  .data-table tbody tr {
+    display:block;
+    margin-bottom:12px;
+    padding:12px;
+  }
+
+  .data-table tbody td {
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    justify-content:flex-start;
+    padding:8px 6px;
+    white-space:normal;
+  }
+
+  /* etiqueta (::before) como separador encima del valor */
+  .data-table tbody td::before{
+    display:block;
+    margin-bottom:6px;
+    min-width:0;
+    color:#d4c79a;
+    font-weight:700;
+  }
+
+  /* Action buttons en columna (ya estaban) y ocupan ancho completo */
+  .data-table tbody td:last-child{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    align-items:stretch;
+  }
+  .data-table tbody td .btn{ width:100%; }
+
+  /* Ajuste para que el título/welcome no quede muy abajo */
+  .welcome-special, .title-simple {
+    display:block;
+    margin-top:6px;
+    margin-bottom:8px;
   }
 }

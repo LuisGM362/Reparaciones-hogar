@@ -279,56 +279,52 @@ export default function AdminPanel({ onLogout }) {
           </div>
 
           <div style={{ overflowX: 'auto' }}>
+            {/* Tabla ajustada: dirección concatenada para evitar scroll horizontal */}
             <table className="data-table clients-table">
               <thead>
                 <tr>
                   <th>Nombre completo</th>
                   <th>Email</th>
                   <th>Tel</th>
-                  <th>Localidad</th>
-                  <th>Calle</th>
-                  <th>Número</th>
-                  <th>Tipo</th>
-                  <th>Piso</th>
-                  <th>Puerta</th>
+                  <th>Dirección</th>
                   <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                {clients.map(c => (
-                  <tr key={c.email}>
-                    <td className="center-cell">{c.fullName} {c.lastName}</td>
-                    <td className="center-cell">{c.email}</td>
-                    <td className="center-cell">{c.phone}</td>
-                    <td className="center-cell">{c.address.locality}</td>
-                    <td className="center-cell">{c.address.street}</td>
-                    <td className="center-cell">{c.address.number}</td>
-                    <td className="center-cell">{c.address.type}</td>
-                    <td className="center-cell">{c.address.type === 'departamento' ? c.address.floor : '-'}</td>
-                    <td className="center-cell">{c.address.type === 'departamento' ? c.address.door : '-'}</td>
-                    <td className="center-cell">
-                      <button className="btn demo-btn" onClick={() => contactClient(c)}>Contactar</button>
-                      <button
-                        className="btn register-btn"
-                        style={{ marginLeft: 8 }}
-                        onClick={() => {
-                          navigator.clipboard?.writeText(`Usuario: ${c.email}\nContraseña: ${c.password}`);
-                          setMessage('Credenciales copiadas al portapapeles.');
-                        }}
-                      >
-                        Copiar credenciales
-                      </button>
-                      <button
-                        className="btn submit-btn"
-                        style={{ marginLeft: 8 }}
-                        onClick={() => openClientModal(c)}
-                        title="Editar cliente"
-                      >
-                        Editar
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {clients.map(c => {
+                  const addr = c.address || {};
+                  const direccion = `${addr.locality || ''}${addr.locality ? ', ' : ''}${addr.street || ''} ${addr.number || ''}` +
+                    (addr.type === 'departamento' ? ` · Piso ${addr.floor || '-'} · Puerta ${addr.door || '-'}` : ` · ${addr.type || 'Casa'}`);
+                  return (
+                    <tr key={c.email}>
+                      <td className="center-cell">{c.fullName} {c.lastName}</td>
+                      <td className="center-cell">{c.email}</td>
+                      <td className="center-cell">{c.phone}</td>
+                      <td>{direccion}</td>
+                      <td className="center-cell">
+                        <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
+                          <button className="btn demo-btn" onClick={() => contactClient(c)}>Contactar</button>
+                          <button
+                            className="btn register-btn"
+                            onClick={() => {
+                              navigator.clipboard?.writeText(`Usuario: ${c.email}\nContraseña: ${c.password}`);
+                              setMessage('Credenciales copiadas al portapapeles.');
+                            }}
+                          >
+                            Copiar credenciales
+                          </button>
+                          <button
+                            className="btn submit-btn"
+                            onClick={() => openClientModal(c)}
+                            title="Editar cliente"
+                          >
+                            Editar
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
