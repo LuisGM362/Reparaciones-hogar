@@ -133,23 +133,24 @@ html,body,#root{
   border:1px solid rgba(212,175,55,0.06);
 }
 
-/* Título distinto para el texto de bienvenida (más elegante, sin competir con el login) */
+/* Título distinto para el texto de bienvenida (más elegante, minimalista y llamativo) */
 .welcome-special{
-  margin: 0 0 12px;
-  font-size:16px;
-  font-weight:600;
-  color:var(--gold);
-  letter-spacing:0.6px;
-  text-transform: none;
-  background: linear-gradient(90deg, rgba(212,175,55,0.95), rgba(243,214,122,0.9));
+  margin: 0 0 14px;
+  font-size:22px;                /* más grande */
+  font-weight:700;
+  letter-spacing:0.4px;
+  line-height:1.05;
+  /* degradado dorado sutil recortado al texto (minimalista) */
+  background: linear-gradient(90deg, rgba(212,175,55,1), rgba(244,220,120,0.9));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  display:block;
-  padding:4px 8px;
-  border-radius:6px;
-  border:1px solid rgba(212,175,55,0.06);
-  box-shadow: 0 4px 12px rgba(212,175,55,0.04);
+  display:inline-block;
+  padding:6px 10px;
+  border-radius:8px;
+  /* ligero contraste para separar del fondo sin romper el minimalismo */
+  box-shadow: 0 6px 18px rgba(212,175,55,0.06);
+  border:1px solid rgba(212,175,55,0.04);
 }
 
 /* Título de "Iniciar sesión" simple y limpio */
@@ -174,7 +175,7 @@ html,body,#root{
     padding:4px 10px;
     letter-spacing:0.6px;
   }
-  .welcome-special{ font-size:13px; padding:3px 6px; }
+  .welcome-special{ font-size:18px; padding:4px 8px; }
   .title-simple{ font-size:18px; }
 }
 
