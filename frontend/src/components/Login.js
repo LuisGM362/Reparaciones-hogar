@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import '../App.css'; // <- ruta corregida
+import '../App.css';
+import AdminPanel from './AdminPanel';
 
 function Login() {
   // Usuarios precargados (solo para demo / desarrollo)
@@ -13,7 +14,8 @@ function Login() {
   const [password, setPassword] = useState('');
   const [authMessage, setAuthMessage] = useState('');
   const [loggedUser, setLoggedUser] = useState(null);
-  const [showPdf, setShowPdf] = useState(false); // <-- nuevo estado
+  const [showPdf, setShowPdf] = useState(false);
+  const [showAdmin, setShowAdmin] = useState(false);
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -21,7 +23,9 @@ function Login() {
     if (found) {
       setLoggedUser(found);
       setAuthMessage(`Bienvenido ${found.role} (${found.username})`);
-      // Aquí podrías redirigir o guardar token, según tu lógica
+      if (found.username === 'admin') {
+        setShowAdmin(true); // abrir panel admin
+      }
       console.log('Login OK:', found);
     } else {
       setAuthMessage('Credenciales inválidas');
@@ -47,6 +51,11 @@ function Login() {
   const closePdf = () => {
     setShowPdf(false);
   };
+
+  // Si se abrió panel admin, mostrarlo
+  if (showAdmin) {
+    return <AdminPanel onLogout={() => { setShowAdmin(false); setLoggedUser(null); setUsername(''); setPassword(''); setAuthMessage(''); }} />;
+  }
 
   return (
     <div className="app-root">
