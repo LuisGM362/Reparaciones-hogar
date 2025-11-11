@@ -43,7 +43,7 @@ export default function AdminPanel({ onLogout }) {
   const [orders, setOrders] = useState([
     { id: 1, clientEmail: 'cliente1@example.com', phone: '3410001111', status: 'pendiente', description: 'Reparación de bomba' },
     { id: 2, clientEmail: 'cliente2@example.com', phone: '3410002222', status: 'visita_tecnica', description: 'Instalación de calefón' },
-    { id: 3, clientEmail: 'cliente1@example.com', phone: '3410001111', status: 'urgencia', description: 'Fuga de gas' },
+    { id: 3, clientEmail: 'cliente1@example.com', phone: '3410001111', status: 'presupuestado', description: 'Fuga de gas' },
   ]);
 
   const [activeStatus, setActiveStatus] = useState('pendiente');
@@ -57,10 +57,10 @@ export default function AdminPanel({ onLogout }) {
   // modal mode: 'add' | 'edit'
   const [modalMode, setModalMode] = useState('add');
   const [editingClient, setEditingClient] = useState(null); // client object when editing
-  const [notifyOnSave, setNotifyOnSave] = useState(true);
 
-  // estado para agregar presupuestos a un pedido
-  const [budgetOrderId, setBudgetOrderId] = useState('');
+  // budget modal (per-order) — only available from orders with status 'presupuestado'
+  const [budgetModalOpen, setBudgetModalOpen] = useState(false);
+  const [budgetOrder, setBudgetOrder] = useState(null);
   const [budgetAmount, setBudgetAmount] = useState('');
   const [budgetNote, setBudgetNote] = useState('');
 
@@ -71,11 +71,9 @@ export default function AdminPanel({ onLogout }) {
     if (client) {
       setModalMode('edit');
       setEditingClient(client);
-      setNotifyOnSave(false); // default: don't notify unless checked
     } else {
       setModalMode('add');
       setEditingClient(null);
-      setNotifyOnSave(true);
     }
     setShowClientModal(true);
   };
@@ -107,7 +105,6 @@ export default function AdminPanel({ onLogout }) {
 
     // Editing
     if (modalMode === 'edit' && editingClient) {
-      // if email changed and conflicts with another client
       if (email !== editingClient.email && clients.find(c => c.email === email)) {
         setMessage('El email ya está registrado por otro cliente.');
         return;
@@ -163,25 +160,6 @@ export default function AdminPanel({ onLogout }) {
     updateOrder(orderId, newStatus);
   };
 
-  const addOrder = (e) => {
-    e.preventDefault();
-    const form = e.target;
-    const email = form.clientEmail.value.trim();
-    const phone = form.phone.value.trim();
-    const desc = form.description.value.trim();
-    if (!email || !phone || !desc) {
-      setMessage('Complete todos los campos de pedido.');
-      return;
-    }
-    const nextId = orders.length ? Math.max(...orders.map(o => o.id)) + 1 : 1;
-    const newOrder = { id: nextId, clientEmail: email, phone, status: 'pendiente', description: desc };
-    setOrders(prev => [newOrder, ...prev]);
-    setMessage(`Pedido ${nextId} creado.`);
-    form.reset();
-    const text = `Se creó un pedido #${nextId}: ${desc}`;
-    sendWhatsApp(phone, text);
-  };
-
   const toggleClientPanel = (email) => {
     setOpenClientPanels(prev => ({ ...prev, [email]: !prev[email] }));
   };
@@ -190,20 +168,33 @@ export default function AdminPanel({ onLogout }) {
     sendWhatsApp(client.phone, `Hola ${client.fullName}, consulta desde panel admin.`);
   };
 
-  // agrega un presupuesto al pedido seleccionado (suma al total y guarda el array de presupuestos)
-  const addPresupuesto = (e) => {
+  // open budget modal for a specific order (only if order.status === 'presupuestado')
+  const openBudgetModal = (order) => {
+    if (!order || order.status !== 'presupuestado') {
+      setMessage('Solo se pueden agregar presupuestos a pedidos en estado "Presupuestado".');
+      return;
+    }
+    setBudgetOrder(order);
+    setBudgetAmount('');
+    setBudgetNote('');
+    setBudgetModalOpen(true);
+    setMessage('');
+  };
+
+  const closeBudgetModal = () => {
+    setBudgetModalOpen(false);
+    setBudgetOrder(null);
+  };
+
+  const submitBudgetForOrder = (e) => {
     e.preventDefault();
-    const id = parseInt(budgetOrderId, 10);
+    if (!budgetOrder) return;
     const amount = parseFloat(budgetAmount);
-    if (!id || isNaN(amount) || amount <= 0) {
-      setMessage('Seleccione un pedido válido y un monto mayor a 0.');
+    if (isNaN(amount) || amount <= 0) {
+      setMessage('Ingrese un monto válido mayor a 0.');
       return;
     }
-    const order = orders.find(o => o.id === id);
-    if (!order) {
-      setMessage('Pedido no encontrado.');
-      return;
-    }
+    const id = budgetOrder.id;
     const newItem = { amount, note: budgetNote || '', date: new Date().toISOString() };
     const updated = orders.map(o => {
       if (o.id !== id) return o;
@@ -212,14 +203,12 @@ export default function AdminPanel({ onLogout }) {
       return { ...o, presupuestos, totalPresupuesto };
     });
     setOrders(updated);
-    const client = clients.find(c => c.email === order.clientEmail);
-    const phone = client ? client.phone : order.phone;
+    const client = clients.find(c => c.email === budgetOrder.clientEmail);
+    const phone = client ? client.phone : budgetOrder.phone;
     const text = `Se agregó un presupuesto de $${amount.toFixed(2)} al pedido #${id}. Total presupuestos: $${updated.find(u => u.id === id).totalPresupuesto.toFixed(2)}.`;
     sendWhatsApp(phone, text);
     setMessage(`Presupuesto agregado a pedido #${id} y notificado por WhatsApp.`);
-    setBudgetOrderId('');
-    setBudgetAmount('');
-    setBudgetNote('');
+    closeBudgetModal();
   };
 
   return (
@@ -231,7 +220,7 @@ export default function AdminPanel({ onLogout }) {
         </div>
       </header>
 
-      {/* Tabs */}
+      {/* Tabs (compact on desktop via App.css) */}
       <div className="tabs">
         <button className={`tab ${activeTab === 'notifications' ? 'tab-active' : ''}`} onClick={() => setActiveTab('notifications')}>Notificaciones</button>
         <button className={`tab ${activeTab === 'clients' ? 'tab-active' : ''}`} onClick={() => setActiveTab('clients')}>Clientes</button>
@@ -269,6 +258,7 @@ export default function AdminPanel({ onLogout }) {
                     <th>Cliente (email)</th>
                     <th>Tel</th>
                     <th>Estado</th>
+                    <th>Presupuestos</th>
                     <th>Acciones</th>
                   </tr>
                 </thead>
@@ -285,10 +275,20 @@ export default function AdminPanel({ onLogout }) {
                         </select>
                       </td>
                       <td className="center-cell">
-                        <button className="btn demo-btn" onClick={() => {
-                          const client = clients.find(c => c.email === o.clientEmail);
-                          sendWhatsApp(client ? client.phone : o.phone, `Consulta sobre pedido #${o.id}`);
-                        }}>Contactar</button>
+                        {o.totalPresupuesto ? `$${(o.totalPresupuesto).toFixed(2)}` : '-'}
+                      </td>
+                      <td className="center-cell">
+                        <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
+                          <button className="btn demo-btn" onClick={() => {
+                            const client = clients.find(c => c.email === o.clientEmail);
+                            sendWhatsApp(client ? client.phone : o.phone, `Consulta sobre pedido #${o.id}`);
+                          }}>Contactar</button>
+
+                          {/* Only allow adding presupuesto if order status is 'presupuestado' */}
+                          {o.status === 'presupuestado' && (
+                            <button className="btn submit-btn" onClick={() => openBudgetModal(o)}>Agregar presupuesto</button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -297,45 +297,7 @@ export default function AdminPanel({ onLogout }) {
             )}
           </div>
 
-          <div style={{ marginTop: 16, textAlign: 'center' }}>
-            <h4 style={{ color: 'var(--text)' }}>Agregar presupuesto a un pedido</h4>
-            <form onSubmit={addPresupuesto} style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center' }}>
-              <select
-                value={budgetOrderId}
-                onChange={(e) => setBudgetOrderId(e.target.value)}
-                className="input"
-                style={{ minWidth: 200 }}
-                required
-              >
-                <option value="">Seleccionar pedido</option>
-                {ordersByStatus.map(o => (
-                  <option key={o.id} value={o.id}>#{o.id} — {o.description}</option>
-                ))}
-              </select>
-
-              <input
-                value={budgetAmount}
-                onChange={(e) => setBudgetAmount(e.target.value)}
-                placeholder="Monto (ej. 1500.00)"
-                className="input"
-                style={{ width: 160 }}
-                required
-              />
-
-              <input
-                value={budgetNote}
-                onChange={(e) => setBudgetNote(e.target.value)}
-                placeholder="Nota (opcional)"
-                className="input"
-                style={{ flex: '1 1 240px' }}
-              />
-
-              <button className="btn submit-btn" type="submit">Agregar presupuesto</button>
-            </form>
-            <div style={{ marginTop: 8, color: '#cfc6b0' }}>
-              Cada presupuesto se suma al total del pedido y el cliente es notificado por WhatsApp.
-            </div>
-          </div>
+          {/* removed global add-presupuesto form - budgets are added per-order via the row button */}
         </section>
       )}
 
@@ -345,8 +307,7 @@ export default function AdminPanel({ onLogout }) {
             <h3 style={{ margin: 0, color: 'var(--text)', textAlign: 'center' }}>Clientes ({clients.length})</h3>
           </div>
 
-          <div style={{ overflowX: 'auto' }}>
-            {/* Tabla ajustada: dirección concatenada para evitar scroll horizontal */}
+          <div>
             <table className="data-table clients-table">
               <thead>
                 <tr>
@@ -371,15 +332,6 @@ export default function AdminPanel({ onLogout }) {
                       <td className="center-cell">
                         <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
                           <button className="btn demo-btn" onClick={() => contactClient(c)}>Contactar</button>
-                          <button
-                            className="btn register-btn"
-                            onClick={() => {
-                              navigator.clipboard?.writeText(`Usuario: ${c.email}\nContraseña: ${c.password}`);
-                              setMessage('Credenciales copiadas al portapapeles.');
-                            }}
-                          >
-                            Copiar credenciales
-                          </button>
                           <button
                             className="btn submit-btn"
                             onClick={() => openClientModal(c)}
@@ -470,6 +422,37 @@ export default function AdminPanel({ onLogout }) {
               <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 6 }}>
                 <button type="button" className="btn register-btn" onClick={closeClientModal}>Cancelar</button>
                 <button type="submit" className="btn submit-btn">{modalMode === 'edit' ? 'Guardar cambios' : 'Agregar y notificar por WhatsApp'}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para agregar presupuesto (solo triggered desde la fila cuando status === 'presupuestado') */}
+      {budgetModalOpen && budgetOrder && (
+        <div className="modal-overlay" role="dialog" aria-modal="true">
+          <div className="modal">
+            <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ margin: 0, color: 'var(--gold)' }}>Agregar presupuesto — Pedido #{budgetOrder.id}</h3>
+              <button className="btn register-btn" onClick={closeBudgetModal}>Cerrar</button>
+            </header>
+
+            <form onSubmit={submitBudgetForOrder} style={{ display: 'grid', gap: 8, marginTop: 12 }}>
+              <input
+                value={budgetAmount}
+                onChange={(e) => setBudgetAmount(e.target.value)}
+                placeholder="Monto (ej. 1500.00)"
+                className="input"
+              />
+              <input
+                value={budgetNote}
+                onChange={(e) => setBudgetNote(e.target.value)}
+                placeholder="Nota (opcional)"
+                className="input"
+              />
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                <button type="button" className="btn register-btn" onClick={closeBudgetModal}>Cancelar</button>
+                <button type="submit" className="btn submit-btn">Guardar y notificar</button>
               </div>
             </form>
           </div>

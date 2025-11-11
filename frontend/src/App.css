@@ -438,24 +438,39 @@ header h2, header h3 { text-align:center; }
 /* Tabs */
 .tabs{
   display:flex;
-  gap:8px;
-  justify-content:center;
+  gap:6px;
+  justify-content:flex-start;
   margin-top:12px;
+  flex-wrap:wrap;
+  align-items:center;
 }
 .tab{
   background:transparent;
   color:var(--text);
   border:1px solid rgba(255,255,255,0.04);
-  padding:8px 12px;
+  padding:6px 8px;            /* padding reducido para desktop */
   border-radius:8px;
   cursor:pointer;
   font-weight:700;
+  font-size:13px;
+  line-height:1;
 }
 .tab-active{
   background: linear-gradient(180deg, rgba(212,175,55,0.12), rgba(212,175,55,0.06));
   color:var(--gold);
   border-color: rgba(212,175,55,0.12);
   box-shadow: 0 6px 18px rgba(212,175,55,0.04);
+}
+
+/* Ajustes para que tabs se mantengan compactas en pantallas grandes */
+@media (min-width: 1200px){
+  .tabs{ gap:8px; }
+  .tab{ padding:6px 10px; font-size:14px; }
+}
+
+/* Mantener comportamiento mobile previo */
+@media (max-width: 720px){
+  .tab{ padding:10px 12px; font-size:14px; }
 }
 
 /* Client accordion panels */
