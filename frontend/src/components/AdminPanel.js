@@ -233,21 +233,24 @@ export default function AdminPanel({ onLogout }) {
 
       {activeTab === 'clients' && (
         <section style={{ marginTop: 16 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <h3 style={{ margin: 0, color: 'var(--text)' }}>Clientes ({clients.length})</h3>
-            <div>
-              <button className="btn submit-btn" onClick={openClientModal}>Agregar cliente</button>
-            </div>
+          <div style={{ marginBottom: 12 }}>
+            <h3 style={{ margin: 0, color: 'var(--text)', textAlign: 'center' }}>Clientes ({clients.length})</h3>
           </div>
 
-          <div>
+          <div style={{ overflowX: 'auto' }}>
             <table className="data-table clients-table">
               <thead>
                 <tr>
-                  <th>Nombre</th>
+                  <th>Nombre completo</th>
                   <th>Email</th>
                   <th>Tel</th>
-                  <th>Dirección</th>
+                  <th>Localidad</th>
+                  <th>Calle</th>
+                  <th>Número</th>
+                  <th>Tipo</th>
+                  <th>Piso</th>
+                  <th>Puerta</th>
+                  <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -256,14 +259,33 @@ export default function AdminPanel({ onLogout }) {
                     <td className="center-cell">{c.fullName} {c.lastName}</td>
                     <td className="center-cell">{c.email}</td>
                     <td className="center-cell">{c.phone}</td>
-                    <td>
-                      {c.address.locality}, {c.address.street} {c.address.number}
-                      {c.address.type === 'departamento' ? ` · Piso ${c.address.floor} · Puerta ${c.address.door}` : ` · Casa`}
+                    <td className="center-cell">{c.address.locality}</td>
+                    <td className="center-cell">{c.address.street}</td>
+                    <td className="center-cell">{c.address.number}</td>
+                    <td className="center-cell">{c.address.type}</td>
+                    <td className="center-cell">{c.address.type === 'departamento' ? c.address.floor : '-'}</td>
+                    <td className="center-cell">{c.address.type === 'departamento' ? c.address.door : '-'}</td>
+                    <td className="center-cell">
+                      <button className="btn demo-btn" onClick={() => contactClient(c)}>Contactar</button>
+                      <button
+                        className="btn register-btn"
+                        style={{ marginLeft: 8 }}
+                        onClick={() => {
+                          navigator.clipboard?.writeText(`Usuario: ${c.email}\nContraseña: ${c.password}`);
+                          setMessage('Credenciales copiadas al portapapeles.');
+                        }}
+                      >
+                        Copiar credenciales
+                      </button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          </div>
+
+          <div style={{ marginTop: 12, textAlign: 'center' }}>
+            <button className="btn submit-btn" onClick={openClientModal}>Agregar nuevo cliente</button>
           </div>
         </section>
       )}
