@@ -526,37 +526,35 @@ header h2, header h3 { text-align:center; }
   max-width:100%;          /* permitir ocupar todo el ancho cuando no hay aside */
   margin:0;
   box-sizing:border-box;
-}
-.admin-root aside{
-  flex: 0 0 360px;
-  min-width: 280px;
-  margin:0;
-}
-
-/* Asegurar que las tablas se centren dentro de su contenedor */
-.admin-root .data-table{
-  margin: 0 auto;            /* centra la tabla */
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* centra contenidos cuando no hay tabla/aside */
+  justify-content: flex-start;
   width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
 }
 
-/* Evitar desplazamiento por overflow inesperado */
-.admin-root .table-wrapper,
-.admin-root > section > div {
-  overflow-x: visible;
+/* Mensaje "no hay pedidos" / estados vacíos: asegurar centrado y espacio */
+.admin-root .no-results,
+.admin-root .empty-state,
+.admin-root > section > div:first-child > div[style*="textAlign: 'center'"], /* fallback para inline center */
+.admin-root > section > div:first-child > .empty-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  margin: 20px 0;
+  width: 100%;
 }
 
-/* Mobile: mantener centrado y acolchado lateral */
-@media (max-width: 900px){
-  .admin-root > section{
-    padding:0 12px;
-    max-width:980px;
-  }
-  .admin-root > section > div:first-child,
-  .admin-root aside{
-    max-width:100%;
-  }
+/* Asegurar que la tabla no se "pegue" a la derecha cuando está ausente la columna lateral */
+.admin-root > section {
+  justify-content: center;
+}
+
+/* Mantener la tabla a 100% dentro del contenedor centralizado */
+.admin-root .data-table {
+  margin: 0 auto;
+  width: 100%;
 }
 
 /* Iconos dorados para inputs date/time: reemplazo con SVG inline (color #d4c79a) */
