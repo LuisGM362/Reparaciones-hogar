@@ -606,74 +606,40 @@ input[type="date"], input[type="time"] {
   margin-bottom:8px;
 }
 
-/* Forzar orden horizontal (izquierda -> derecha) en la barra de estados */
+/* Forzar barra de estados en una fila (izquierda -> derecha) */
 .status-bar {
   width: 100%;
   display: flex;
-  flex-direction: row;    /* izquierda a derecha */
-  flex-wrap: nowrap;      /* no apilar en una nueva línea por defecto */
+  flex-direction: row;
+  flex-wrap: nowrap;
   align-items: center;
   justify-content: flex-start;
   gap: 8px;
-  align-self: stretch;    /* que ocupe todo el ancho del contenedor */
-  overflow-x: auto;       /* permite scroll horizontal si falta espacio */
-  -webkit-overflow-scrolling: touch;
   padding: 6px 0;
+  box-sizing: border-box;
+  overflow-x: auto; /* permitir scroll si falta espacio en pantallas muy pequeñas */
+  -webkit-overflow-scrolling: touch;
 }
 
-/* Asegurar que cada botón no se rompa y mantenga alineación inline */
+/* Cada botón de estado mantiene su ancho y no se parte en varias líneas */
 .status-bar .demo-btn {
+  white-space: nowrap;
   display: inline-flex;
   align-items: center;
-  white-space: nowrap;
 }
 
-/* Permitir wrap en pantallas pequeñas para que no se corten botones */
-@media (max-width: 720px) {
-  .status-bar {
-    flex-wrap: wrap;
-    overflow-x: visible;
-    justify-content: flex-start;
-  }
-}
-
-/* Empty state: cuando no hay notificaciones, centrar texto y colocarlo abajo */
-.empty-state{
-  width:100%;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  text-align:center;
-  margin-top:16px;
-  padding:12px 8px;
-  box-sizing:border-box;
-}
-
-/* Asegurar que el contenedor principal mantenga el orden centrado cuando no hay notificaciones */
-.admin-root > section > div:first-child {
+/* Contenido de notificaciones siempre apilado verticalmente debajo de la barra */
+.notifications-content {
+  width: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  width: 100%;
-  margin: 0;
-  padding: 0;
+  align-items: center; /* centra títulos, mensajes y tabla */
+  gap: 12px;
+  box-sizing: border-box;
 }
 
-/* Asegura que la status-bar no se centre junto al resto del contenedor */
-.admin-root > section > div:first-child .status-bar {
-  width: 100%;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-start; /* izquierda -> derecha */
-  align-self: stretch; /* ocupa todo el ancho del contenedor aunque el padre esté centrado */
-  margin: 0 0 8px 0;
-}
-
-/* Si quieres que los botones ocupen solo lo necesario y sigan a la izquierda */
-.admin-root > section > div:first-child .status-bar .demo-btn {
-  margin-right: 8px;
+/* En pantallas pequeñas permitimos wrap en la barra para evitar overflow excesivo */
+@media (max-width: 720px) {
+  .status-bar { flex-wrap: wrap; overflow-x: visible; }
+  .notifications-content { padding: 0 12px; }
 }

@@ -313,7 +313,8 @@ export default function AdminPanel({ onLogout }) {
       {/* Tab content */}
       {activeTab === 'notifications' && (
         <section style={{ marginTop: 16 }}>
-          <div className="status-bar" style={{ marginBottom: 12 }}>
+          {/* barra de estados (fila) */}
+          <div className="status-bar" style={{ marginBottom: 12 }} aria-label="Estados">
             {STATUS_LIST.map(s => (
               <button
                 key={s.key}
@@ -326,14 +327,15 @@ export default function AdminPanel({ onLogout }) {
             ))}
           </div>
 
-          <div>
+          {/* contenido de notificaciones: siempre apila verticalmente debajo de la barra */}
+          <div className="notifications-content">
              <h3 style={{ color: 'var(--text)', textAlign: 'center' }}>
                {STATUS_LIST.find(s => s.key === activeStatus).label} ({ordersByStatus.length})
              </h3>
  
-            {ordersByStatus.length === 0 ? (
-              <div className="empty-state" style={{ color: '#cfc6b0' }}>No hay pedidos en esta categoría.</div>
-            ) : (
+             {ordersByStatus.length === 0 ? (
+               <div className="empty-state" style={{ color: '#cfc6b0' }}>No hay pedidos en esta categoría.</div>
+             ) : (
                <table className="data-table orders-table">
                 <thead>
                   <tr>
