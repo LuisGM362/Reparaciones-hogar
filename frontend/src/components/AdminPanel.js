@@ -58,12 +58,20 @@ export default function AdminPanel({ onLogout }) {
   const [modalMode, setModalMode] = useState('add');
   const [editingClient, setEditingClient] = useState(null); // client object when editing
 
+  // scheduling modal for "visita_tecnica" when status selected
+  const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
+  const [scheduleOrder, setScheduleOrder] = useState(null);
+  const [scheduleDate, setScheduleDate] = useState('');
+  const [scheduleTime, setScheduleTime] = useState('');
+
   // budget modal (per-order) — only available from orders with status 'presupuestado'
   const [budgetModalOpen, setBudgetModalOpen] = useState(false);
   const [budgetOrder, setBudgetOrder] = useState(null);
   const [budgetItems, setBudgetItems] = useState([]); // items added in the modal
   const [newBudgetItem, setNewBudgetItem] = useState({ desc: '', qty: '', unit: '' });
   const [budgetNote, setBudgetNote] = useState('');
+  const [budgetVisitDate, setBudgetVisitDate] = useState('');
+  const [budgetVisitTime, setBudgetVisitTime] = useState('');
 
   const ordersByStatus = orders.filter(o => o.status === activeStatus);
 
@@ -524,6 +532,55 @@ export default function AdminPanel({ onLogout }) {
               <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                 <button type="button" className="btn register-btn" onClick={closeBudgetModal}>Cancelar</button>
                 <button type="submit" className="btn submit-btn" disabled={budgetItems.length === 0}>Guardar y notificar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para agendar visita técnica (solo triggered desde el cambio de estado a "visita_tecnica") */}
+      {scheduleModalOpen && scheduleOrder && (
+        <div className="modal-overlay" role="dialog" aria-modal="true">
+          <div className="modal">
+            <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ margin: 0, color: 'var(--gold)' }}>Agendar visita técnica — Pedido #{scheduleOrder.id}</h3>
+              <button className="btn register-btn" onClick={() => setScheduleModalOpen(false)}>Cerrar</button>
+            </header>
+
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              if (!scheduleDate || !scheduleTime) {
+                setMessage('Seleccione fecha y hora para la visita técnica.');
+                return;
+              }
+              const dateTime = new Date(`${scheduleDate}T${scheduleTime}:00`);
+              if (isNaN(dateTime)) {
+                setMessage('Fecha y hora inválidas. Asegúrese de que el formato sea correcto.');
+                return;
+              }
+              const isoString = dateTime.toISOString();
+              updateOrder(scheduleOrder.id, 'visita_tecnica');
+              setMessage(`Visita técnica agendada para el pedido #${scheduleOrder.id}.`);
+              setScheduleModalOpen(false);
+            }} style={{ display: 'grid', gap: 8, marginTop: 12 }}>
+              <input
+                type="date"
+                className="input"
+                value={scheduleDate}
+                onChange={(e) => setScheduleDate(e.target.value)}
+                style={{ maxWidth: 200 }}
+              />
+              <input
+                type="time"
+                className="input"
+                value={scheduleTime}
+                onChange={(e) => setScheduleTime(e.target.value)}
+                style={{ maxWidth: 200 }}
+              />
+
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 6 }}>
+                <button type="button" className="btn register-btn" onClick={() => setScheduleModalOpen(false)}>Cancelar</button>
+                <button type="submit" className="btn submit-btn">Guardar y notificar</button>
               </div>
             </form>
           </div>
