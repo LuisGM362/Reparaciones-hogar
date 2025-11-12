@@ -296,8 +296,6 @@ export default function AdminPanel({ onLogout }) {
               </table>
             )}
           </div>
-
-          {/* removed global add-presupuesto form - budgets are added per-order via the row button */}
         </section>
       )}
 
