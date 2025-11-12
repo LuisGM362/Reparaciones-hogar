@@ -73,6 +73,32 @@ export default function AdminPanel({ onLogout }) {
   const [budgetVisitDate, setBudgetVisitDate] = useState('');
   const [budgetVisitTime, setBudgetVisitTime] = useState('');
 
+  // Servicios pre-cargados y CRUD mínimo
+  const [services, setServices] = useState([
+    'Albañilería',
+    'Instalación / Refrigeración',
+    'Electricidad',
+    'Fontanería y gas',
+    'Durlock',
+    'Pintura'
+  ]);
+  const [newService, setNewService] = useState('');
+  const [showServiceModal, setShowServiceModal] = useState(false);
+  const openServiceModal = () => { setNewService(''); setShowServiceModal(true); setMessage(''); };
+  const closeServiceModal = () => { setShowServiceModal(false); setNewService(''); };
+
+  // Equipo de trabajo (usuarios que pueden asignarse a pedidos)
+  const [team, setTeam] = useState([
+    { id: 't1', fullName: 'Técnico Uno', role: 'Técnico', phone: '3410001111', email: 'tec1@example.com' },
+    { id: 't2', fullName: 'Técnico Dos', role: 'Técnico', phone: '3410002222', email: 'tec2@example.com' },
+  ]);
+  const [newMember, setNewMember] = useState({ fullName: '', role: '', phone: '', email: '' });
+
+  // modal para agregar miembro del equipo
+  const [showTeamModal, setShowTeamModal] = useState(false);
+  const openTeamModal = () => { setNewMember({ fullName: '', role: '', phone: '', email: '' }); setShowTeamModal(true); setMessage(''); };
+  const closeTeamModal = () => { setShowTeamModal(false); setMessage(''); };
+
   const ordersByStatus = orders.filter(o => o.status === activeStatus);
 
   const openClientModal = (client = null) => {
@@ -295,6 +321,33 @@ export default function AdminPanel({ onLogout }) {
     closeBudgetModal();
   };
 
+  // Servicios pre-cargados y CRUD mínimo
+  const addService = () => {
+    const s = (newService || '').trim();
+    if (!s) return setMessage('Ingrese nombre de servicio.');
+    setServices(prev => [...prev, s]);
+    setNewService('');
+    setMessage('');
+  };
+  const removeService = (idx) => setServices(prev => prev.filter((_, i) => i !== idx));
+
+  const addTeamMember = (e) => {
+    e?.preventDefault();
+    if (!newMember.fullName || !newMember.role) return setMessage('Nombre y rol son obligatorios.');
+    const id = `t${Date.now()}`;
+    setTeam(prev => [...prev, { id, ...newMember }]);
+    setNewMember({ fullName: '', role: '', phone: '', email: '' });
+    setMessage('');
+    setShowTeamModal(false);
+  };
+  const removeTeamMember = (id) => setTeam(prev => prev.filter(m => m.id !== id));
+
+  // asignar miembro del equipo a un pedido
+  const assignMemberToOrder = (orderId, memberId) => {
+    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, assignedTo: memberId } : o));
+    setMessage(memberId ? 'Miembro asignado al pedido.' : 'Asignación removida.');
+  };
+
   return (
     <div className="admin-root" style={{ padding: 20 }}>
       <header style={{ textAlign: 'center', marginBottom: 18 }}>
@@ -308,53 +361,98 @@ export default function AdminPanel({ onLogout }) {
       <div className="tabs">
         <button className={`tab ${activeTab === 'notifications' ? 'tab-active' : ''}`} onClick={() => setActiveTab('notifications')}>Notificaciones</button>
         <button className={`tab ${activeTab === 'clients' ? 'tab-active' : ''}`} onClick={() => setActiveTab('clients')}>Clientes</button>
+        <button className={`tab ${activeTab === 'services' ? 'tab-active' : ''}`} onClick={() => setActiveTab('services')}>Servicios</button>
+        <button className={`tab ${activeTab === 'team' ? 'tab-active' : ''}`} onClick={() => setActiveTab('team')}>Equipo de trabajo</button>
       </div>
 
       {/* Tab content */}
       {activeTab === 'notifications' && (
         <section style={{ marginTop: 16 }}>
-          {/* Reemplaza status-bar + listado por columnas de estados con sus items */}
-          <div className="statuses-row" style={{ marginBottom: 12 }}>
+          {/* Barra horizontal de estados */}
+          <div className="status-bar" style={{ marginBottom: 12 }}>
             {STATUS_LIST.map(s => {
-              const list = orders.filter(o => o.status === s.key);
+              const count = orders.filter(o => o.status === s.key).length;
               return (
-                <div
+                <button
                   key={s.key}
-                  className={`status-column ${activeStatus === s.key ? 'status-active' : ''}`}
+                  className={`demo-btn ${activeStatus === s.key ? 'status-active' : ''}`}
                   onClick={() => setActiveStatus(s.key)}
+                  title={`${s.label} — ${count} items`}
                 >
-                  <div className="status-header">
-                    <div className="status-label">{s.label}</div>
-                    <div className="status-count">{list.length}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span>{s.label}</span>
+                    <span className="status-count" style={{ fontSize: 13 }}>{count}</span>
                   </div>
-
-                  <div className="status-items">
-                    {list.length === 0 ? (
-                      <div className="status-empty">0 elementos</div>
-                    ) : (
-                      list.map(o => {
-                        const client = clients.find(c => c.email === o.clientEmail);
-                        return (
-                          <div className="status-item" key={o.id}>
-                            <div className="si-top">
-                              <div className="si-id">#{o.id}</div>
-                              <div className="si-desc">{o.description}</div>
-                            </div>
-                            <div className="si-meta">
-                              <div className="si-client">{o.clientEmail}{client ? ` · ${client.phone}` : ''}</div>
-                              <div className="si-actions">
-                                <button className="btn demo-btn" onClick={(ev) => { ev.stopPropagation(); sendWhatsApp(client ? client.phone : o.phone, `Consulta sobre pedido #${o.id}`); }}>Contactar</button>
-                                {o.status === 'presupuestado' && <button className="btn submit-btn" onClick={(ev) => { ev.stopPropagation(); openBudgetModal(o); }}>Agregar presupuesto</button>}
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })
-                    )}
-                  </div>
-                </div>
+                </button>
               );
             })}
+          </div>
+
+          {/* Contenido del estado seleccionado: items en columna o mensaje centrado */}
+          <div className="status-content" style={{ width: '100%' }}>
+            <h3 style={{ color: 'var(--text)', textAlign: 'center', marginTop: 6 }}>
+              {STATUS_LIST.find(s => s.key === activeStatus).label} ({ordersByStatus.length})
+            </h3>
+
+            {ordersByStatus.length === 0 ? (
+              <div className="status-empty" style={{ textAlign: 'center', color: '#cfc6b0', marginTop: 12 }}>
+                No tiene elementos
+              </div>
+            ) : (
+              <div className="status-items" style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 12 }}>
+                {ordersByStatus.map(o => {
+                  const client = clients.find(c => c.email === o.clientEmail);
+                  const clientName = client ? `${client.fullName} ${client.lastName}` : o.clientEmail;
+                  const addr = client?.address || o.address || {};
+                  const direccion = addr
+                    ? `${addr.locality || ''}${addr.locality ? ', ' : ''}${addr.street || ''} ${addr.number || ''}` +
+                        (addr.type === 'departamento' ? ` · Piso ${addr.floor || '-'} · Puerta ${addr.door || '-'}` : ` · ${addr.type || 'Casa'}`)
+                    : '-';
+
+                  // visit schedule display (if any)
+                  const visitInfo = o.visitSchedule
+                    ? (o.visitSchedule.date && o.visitSchedule.time
+                        ? `${o.visitSchedule.date} ${o.visitSchedule.time}`
+                        : (o.visitSchedule.dateIso ? new Date(o.visitSchedule.dateIso).toLocaleString() : ''))
+                    : '';
+
+                  return (
+                    <div key={o.id} className="status-item" style={{ padding: 12, borderRadius: 8, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.02)' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+                          <div style={{ fontWeight: 700, color: 'var(--gold)' }}>#{o.id}</div>
+                          <div style={{ flex: '1 1 220px', color: 'var(--text)', textAlign: 'left' }}>{o.description}</div>
+                          <div style={{ color: '#dcd4c2', minWidth: 160, textAlign: 'right' }}>{clientName}</div>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <div style={{ color: 'var(--text)', fontSize: 13, flex: '1 1 60%' }}>
+                            <strong>Dirección:</strong> {direccion}
+                          </div>
+                          <div style={{ minWidth: 160 }}>
+                            <select value={o.status} onChange={(e) => handleStatusChange(o.id, e)} className="input" style={{ minWidth: 160 }}>
+                              {STATUS_LIST.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
+                            </select>
+                          </div>
+                        </div>
+
+                        {/* Si es visita técnica mostrar fecha/hora */}
+                        {o.status === 'visita_tecnica' && visitInfo && (
+                          <div style={{ color: '#cfc6b0', fontSize: 13 }}>
+                            <strong>Visita programada:</strong> {visitInfo}
+                          </div>
+                        )}
+
+                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                          <button className="btn demo-btn" onClick={() => sendWhatsApp(client ? client.phone : o.phone, `Consulta sobre pedido #${o.id}`)}>Contactar</button>
+                          {o.status === 'presupuestado' && <button className="btn submit-btn" onClick={() => openBudgetModal(o)}>Agregar presupuesto</button>}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                 })}
+              </div>
+            )}
           </div>
         </section>
       )}
@@ -413,7 +511,58 @@ export default function AdminPanel({ onLogout }) {
         </section>
       )}
 
-      {message && <div style={{ marginTop: 12, color: '#dcd4c2', textAlign: 'center' }}>{message}</div>}
+      {activeTab === 'services' && (
+        <section style={{ marginTop: 16 }}>
+          <h3 style={{ textAlign: 'center', color: 'var(--text)' }}>Servicios</h3>
+          <div className="tab-intro" style={{ marginTop: 8 }}>
+            <div className="intro-text">Lista de servicios disponibles</div>
+          </div>
+
+          {/* botón centrado que abre modal para nuevo servicio */}
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: 12 }}>
+            <button className="btn submit-btn btn-plus" onClick={openServiceModal} aria-label="Nuevo servicio">
+              <span className="plus-icon" aria-hidden="true">＋</span>&nbsp;Nuevo servicio
+            </button>
+          </div>
+
+          <div className="services-list centered-container" style={{ marginTop: 12 }}>
+            {services.map((s, i) => (
+              <div key={i} className="service-item">
+                <div className="service-label">{s}</div>
+                <button className="btn register-btn" onClick={() => removeService(i)}>Eliminar</button>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {activeTab === 'team' && (
+        <section style={{ marginTop: 16 }}>
+          <h3 style={{ textAlign: 'center', color: 'var(--text)' }}>Equipo de trabajo</h3>
+          <div className="tab-intro" style={{ marginTop: 8 }}>
+            <div className="intro-text">Gestiona el personal disponible para asignaciones</div>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: 12 }}>
+            <button className="btn submit-btn btn-plus" onClick={openTeamModal} aria-label="Nuevo miembro">
+              <span className="plus-icon" aria-hidden="true">＋</span>&nbsp;Nuevo miembro
+            </button>
+          </div>
+
+          <div className="team-list centered-container" style={{ marginTop: 12 }}>
+            {team.map(member => (
+              <div key={member.id} className="team-member">
+                <div className="team-meta">
+                  <div className="team-name">{member.fullName} <span className="team-role">· {member.role}</span></div>
+                  <div className="team-contact">{member.phone}{member.email ? ` · ${member.email}` : ''}</div>
+                </div>
+                <div className="team-actions">
+                  <button className="btn register-btn" onClick={() => removeTeamMember(member.id)}>Eliminar</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Modal para agregar/editar cliente */}
       {showClientModal && (
@@ -605,6 +754,49 @@ export default function AdminPanel({ onLogout }) {
               <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 6 }}>
                 <button type="button" className="btn register-btn" onClick={() => setScheduleModalOpen(false)}>Cancelar</button>
                 <button type="submit" className="btn submit-btn">Guardar y notificar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para agregar miembro del equipo */}
+      {showTeamModal && (
+        <div className="modal-overlay" role="dialog" aria-modal="true">
+          <div className="modal">
+            <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ margin: 0, color: 'var(--gold)' }}>Agregar miembro — Equipo</h3>
+              <button className="btn register-btn" onClick={closeTeamModal}>Cerrar</button>
+            </header>
+
+            <form onSubmit={addTeamMember} style={{ display: 'grid', gap: 8, marginTop: 12 }}>
+              <input className="input" placeholder="Nombre completo" value={newMember.fullName} onChange={(e) => setNewMember(prev => ({ ...prev, fullName: e.target.value }))} />
+              <input className="input" placeholder="Rol" value={newMember.role} onChange={(e) => setNewMember(prev => ({ ...prev, role: e.target.value }))} />
+              <input className="input" placeholder="Teléfono" value={newMember.phone} onChange={(e) => setNewMember(prev => ({ ...prev, phone: e.target.value }))} />
+              <input className="input" placeholder="Email (opcional)" value={newMember.email} onChange={(e) => setNewMember(prev => ({ ...prev, email: e.target.value }))} />
+
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                <button type="button" className="btn register-btn" onClick={closeTeamModal}>Cancelar</button>
+                <button type="submit" className="btn submit-btn">Agregar miembro</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para nuevo servicio */}
+      {showServiceModal && (
+        <div className="modal-overlay" role="dialog" aria-modal="true">
+          <div className="modal">
+            <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ margin: 0, color: 'var(--gold)' }}>Nuevo servicio</h3>
+              <button className="btn register-btn" onClick={closeServiceModal}>Cerrar</button>
+            </header>
+            <form onSubmit={(e) => { e.preventDefault(); addService(); setShowServiceModal(false); }} style={{ display: 'grid', gap: 8, marginTop: 12 }}>
+              <input className="input" placeholder="Nombre del servicio" value={newService} onChange={(e) => setNewService(e.target.value)} autoFocus />
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                <button type="button" className="btn register-btn" onClick={closeServiceModal}>Cancelar</button>
+                <button type="submit" className="btn submit-btn">Guardar</button>
               </div>
             </form>
           </div>

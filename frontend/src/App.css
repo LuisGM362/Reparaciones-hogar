@@ -600,12 +600,12 @@ input[type="date"], input[type="time"] {
   width:100%;
   display:flex;
   flex-direction:row;
-  flex-wrap:nowrap;
+  flex-wrap:wrap;          /* --> permite bajar a la siguiente fila */
   align-items:center;
   justify-content:flex-start;
-  gap:8px;
-  overflow-x:auto;
-  padding:6px 0;
+  padding:6px 8px;
+  box-sizing:border-box;
+  overflow: visible;        /* no forzar scroll horizontal */
 }
 
 /* mensaje cuando no hay elementos: centrado y abajo */
@@ -776,4 +776,244 @@ input[type="date"], input[type="time"] {
     justify-content:flex-start;
   }
   .status-column{ width:100%; flex: 1 1 100%; min-width:unset; max-width:unset; }
+}
+
+/* Status bar: forzar fila y buen comportamiento en móvil (scroll horizontal) */
+.status-bar {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  padding: 6px 4px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  box-sizing: border-box;
+}
+
+/* cada botón no crece a toda la fila y mantiene el contenido visible */
+.status-bar .demo-btn {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+}
+
+/* asegurar que barra no sea empujada fuera del viewport */
+.admin-root { overflow-x: hidden; }
+
+/* Mobile: permitir wrap si falta espacio pero mantener visual correcto */
+@media (max-width: 540px) {
+  .status-bar { flex-wrap: nowrap; gap:6px; }
+  .status-bar .demo-btn { padding: 8px 10px; font-size: 13px; }
+}
+
+/* Ajustes para modal team (hereda .modal styles) */
+/* asegurar inputs en modal se adapten */
+.modal .input { width: 100%; max-width: 520px; box-sizing: border-box; }
+
+/* Servicios list responsive (ya aplicada), pequeñas mejoras */
+.services-list { padding: 6px; box-sizing: border-box; }
+
+/* Barra de estados: permitir wrap para que los botones bajen a la siguiente fila
+   en lugar de salirse del viewport; mantener márgenes correctos */
+.status-bar {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;          /* --> permite bajar a la siguiente fila */
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 6px 8px;
+  box-sizing: border-box;
+  overflow: visible;        /* no forzar scroll horizontal */
+}
+
+/* Cada botón puede crecer/encogerse respetando el wrap */
+.status-bar .demo-btn {
+  flex: 0 1 auto;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  min-width: 110px;        /* mantiene buen tamaño antes de bajar */
+}
+
+/* En pantallas muy pequeñas permitir que los botones ocupen toda la fila */
+@media (max-width: 420px) {
+  .status-bar .demo-btn {
+    flex: 1 1 100%;
+    min-width: unset;
+    justify-content: center;
+  }
+}
+
+/* Servicios: lista en columna con nombre a la izquierda y botón a la derecha */
+.services-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column; /* siempre columna (uno debajo del otro) */
+  gap: 12px;
+  box-sizing: border-box;
+  padding: 6px;
+}
+
+.service-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* nombre izq, botón der */
+  gap: 12px;
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.03);
+  box-sizing: border-box;
+}
+
+.service-label {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  word-break: break-word;
+  flex: 1 1 auto;
+}
+
+/* Botón eliminar alineado a la derecha y compacto */
+.service-item .btn.register-btn {
+  padding: 6px 10px;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+/* Ajustes para pantallas pequeñas */
+@media (max-width: 480px) {
+  .service-item { padding: 8px; }
+  .service-label { font-size: 13px; }
+  .service-item .btn.register-btn { padding: 6px 8px; font-size: 13px; }
+}
+
+/* Status bar: forzar 4 botones por fila */
+.status-bar{
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr); /* siempre 4 columnas iguales */
+  gap: 8px;
+  align-items: center;
+  justify-items: stretch;
+  width: 100%;
+  padding: 6px 8px;
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+/* Cada botón ocupa toda la celda de la grid */
+.status-bar .demo-btn{
+  width: 100%;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  white-space: nowrap;
+  padding: 8px 10px;
+  box-sizing: border-box;
+}
+
+/* Ajustes opcionales para pantallas muy pequeñas: si prefieres mantener legibilidad,
+   en pantallas <420px cambia a 2 por fila o 1 por fila. Borra/ajusta si no lo quieres. */
+@media (max-width: 420px){
+  .status-bar{ grid-template-columns: repeat(2, 1fr); } /* alternativa: repeat(1,1fr) */
+  .status-bar .demo-btn{ padding:10px; }
+}
+
+/* Wrapper centrado para vistas (services / team) */
+.centered-container{
+  max-width: 920px;
+  width: 100%;
+  margin: 12px auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* centra las tarjetas/filas */
+  gap: 12px;
+  box-sizing: border-box;
+  padding: 6px;
+}
+
+/* Servicios: cada tarjeta ocupa 100% del wrapper, con máximo para no tocar bordes */
+.services-list.centered-container .service-item{
+  width: 100%;
+  max-width: 860px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+/* Equipo: cada miembro ocupa 100% y layout interno */
+.team-list.centered-container{ gap: 10px; }
+.team-member{
+  width:100%;
+  max-width:860px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:10px;
+  border-radius:8px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.03);
+  box-sizing:border-box;
+}
+.team-meta{ display:flex; flex-direction:column; gap:4px; align-items:flex-start; }
+.team-name{ font-weight:700; color:var(--text); }
+.team-role{ color:#cfc6b0; font-weight:600; font-size:12px; margin-left:6px; }
+.team-contact{ color:#dcd4c2; font-size:13px; }
+
+/* Asegurar botones de acción compactos */
+.team-actions .btn, .service-item .btn.register-btn{ flex: 0 0 auto; }
+
+/* Responsive: en pantallas pequeñas apilar contenido dentro de cada item */
+@media (max-width: 680px){
+  .services-list.centered-container .service-item,
+  .team-member{
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .team-meta{ align-items:flex-start; }
+  .team-actions{ display:flex; justify-content:flex-end; margin-top:8px; }
+}
+
+/* Intro text debajo del menú de tabs */
+.tab-intro { width:100%; display:flex; justify-content:center; margin-top:6px; }
+.tab-intro .intro-text { color: #dcd4c2; font-size:14px; text-align:center; }
+
+/* Botón con icono + compacto */
+.btn-plus {
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 12px;
+}
+.btn-plus .plus-icon {
+  display:inline-flex;
+  width:18px;
+  height:18px;
+  line-height:18px;
+  font-size:16px;
+  color:#000;
+  background: linear-gradient(180deg, var(--gold), var(--muted-gold));
+  border-radius:6px;
+  text-align:center;
+}
+
+/* Ajuste: icono más claro en background oscuro */
+.btn-plus .plus-icon { color: #0b0b0b; font-weight:700; }
+
+/* Asegurar centered-container mantiene el centrado para servicios y team */
+.centered-container { align-items:center; padding-top:8px; padding-bottom:8px; }
+
+/* responsive: en pantallas pequeñas el botón se reduce y el icono queda a la izquierda */
+@media (max-width:480px){
+  .btn-plus { padding:10px 12px; font-size:14px; }
+  .btn-plus .plus-icon { width:20px; height:20px; font-size:16px; border-radius:6px; }
 }
