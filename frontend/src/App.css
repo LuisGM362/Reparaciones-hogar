@@ -606,10 +606,35 @@ input[type="date"], input[type="time"] {
   margin-bottom:8px;
 }
 
-/* Ajuste visual para los botones de estado dentro del status-bar */
-.status-bar .demo-btn{
-  margin-right:0; /* el gap ya gestiona el espacio */
-  padding:6px 10px;
+/* Forzar orden horizontal (izquierda -> derecha) en la barra de estados */
+.status-bar {
+  width: 100%;
+  display: flex;
+  flex-direction: row;    /* izquierda a derecha */
+  flex-wrap: nowrap;      /* no apilar en una nueva línea por defecto */
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  align-self: stretch;    /* que ocupe todo el ancho del contenedor */
+  overflow-x: auto;       /* permite scroll horizontal si falta espacio */
+  -webkit-overflow-scrolling: touch;
+  padding: 6px 0;
+}
+
+/* Asegurar que cada botón no se rompa y mantenga alineación inline */
+.status-bar .demo-btn {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+/* Permitir wrap en pantallas pequeñas para que no se corten botones */
+@media (max-width: 720px) {
+  .status-bar {
+    flex-wrap: wrap;
+    overflow-x: visible;
+    justify-content: flex-start;
+  }
 }
 
 /* Empty state: cuando no hay notificaciones, centrar texto y colocarlo abajo */
