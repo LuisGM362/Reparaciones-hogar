@@ -501,299 +501,59 @@ header h2, header h3 { text-align:center; }
 /* Responsive tweaks for Admin Panel */
 .admin-root{
   padding:18px;
+  display:flex;               /* asegurar layout columna */
+  flex-direction:column;
+  align-items:center;         /* centra todo el contenido horizontalmente */
+  box-sizing:border-box;
 }
 
-/* Make main section flexible and wrap on small screens */
-.admin-root section{
+/* Contenedor principal: límite de ancho y centrado */
+.admin-root > section{
+  width:100%;
+  max-width:1200px;           /* ajusta según prefieras */
+  margin:0 auto;              /* centra sección */
+  box-sizing:border-box;
   display:flex;
   gap:20px;
   align-items:flex-start;
   flex-wrap:wrap;
 }
 
-/* Sidebar and main column sizing */
+/* Columnas internas ocupen el ancho disponible y se centren */
 .admin-root > section > div:first-child{
   flex:1 1 640px;
-  max-width:960px;
+  max-width:calc(100% - 380px);
+  margin:0;
+  box-sizing:border-box;
 }
 .admin-root aside{
   flex: 0 0 360px;
   min-width: 280px;
+  margin:0;
 }
 
-/* Make tables horizontally scrollable on small screens */
-.data-table{
-  width:100%;
-  border-collapse:collapse;
-  margin-top:8px;
-  background:transparent;
-  overflow:auto;
-  -webkit-overflow-scrolling:touch;
-  display:block;
+/* Asegurar que las tablas se centren dentro de su contenedor */
+.admin-root .data-table{
+  margin: 0 auto;            /* centra la tabla */
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
-/* Keep table layout while allowing scroll */
-.data-table thead, .data-table tbody, .data-table tr {
-  display:table;
-  width:100%;
-  table-layout:fixed;
-}
-.data-table thead th, .data-table tbody td{
-  box-sizing:border-box;
-  white-space:nowrap;
+/* Evitar desplazamiento por overflow inesperado */
+.admin-root .table-wrapper,
+.admin-root > section > div {
+  overflow-x: visible;
 }
 
-/* Client panels full width */
-.client-panel{
-  width:100%;
-}
-
-/* Modal improvements for mobile */
-.modal{
-  width:100%;
-  max-width:760px;
-  max-height:92vh;
-  overflow:auto;
-  padding:16px;
-}
-
-/* Make modal inputs full width on small screens */
-.modal .input, .modal select.input{
-  width:100%;
-  box-sizing:border-box;
-}
-
-/* Tabs wrap on narrow widths */
-.tabs{
-  flex-wrap:wrap;
-}
-
-/* Stack header buttons on small screens */
-.admin-root header div{
-  display:flex;
-  gap:8px;
-  justify-content:center;
-  align-items:center;
-}
-
-/* Mobile specific */
+/* Mobile: mantener centrado y acolchado lateral */
 @media (max-width: 900px){
-  .admin-root section{
-    flex-direction:column;
+  .admin-root > section{
+    padding:0 12px;
+    max-width:980px;
   }
-  .admin-root > section > div:first-child{
+  .admin-root > section > div:first-child,
+  .admin-root aside{
     max-width:100%;
   }
-  .admin-root aside{
-    width:100%;
-    min-width:unset;
-  }
-  /* Make table rows stack visually better */
-  .data-table thead, .data-table tbody, .data-table tr {
-    display:table;
-    width:100%;
-  }
-  .data-table thead th { font-size:12px; padding:8px; }
-  .data-table tbody td { font-size:13px; padding:8px; }
-  .client-panel-header{
-    flex-direction:column;
-    align-items:flex-start;
-    gap:6px;
-  }
-  .client-panel-meta{ text-align:left; }
-  .modal{ max-width:94%; padding:12px; }
-  .modal .btn{ width:100%; }
-  .pdf-container{ height:88vh; }
 }
-
-/* Smaller phones */
-@media (max-width:480px){
-  .title{ font-size:20px; padding:4px 8px; }
-  .welcome-special{ font-size:18px; padding:4px 6px; }
-  .login-card{ padding:18px; }
-  .data-table thead th, .data-table tbody td{ font-size:12px; padding:6px; }
-  .modal{ padding:10px; }
-}
-
-/* Convert tables to cards on small screens */
-@media (max-width: 720px) {
-  /* hide native table header */
-  .data-table thead { display: none; }
-
-  /* each row becomes a card */
-  .data-table tbody tr {
-    display: block;
-    margin-bottom: 12px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-    border: 1px solid rgba(255,255,255,0.03);
-    border-radius: 10px;
-    padding: 10px;
-  }
-
-  /* cells stack vertically and show label with ::before */
-  .data-table tbody td {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 6px;
-    border-bottom: none;
-    white-space: normal;
-    font-size: 14px;
-  }
-
-  .data-table tbody td + td {
-    margin-top: 6px;
-  }
-
-  .data-table tbody td::before{
-    content: "";
-    display: inline-block;
-    color: #d4c79a;
-    font-weight:700;
-    margin-right: 10px;
-    min-width: 110px;
-  }
-
-  /* Labels para tabla de pedidos (orders-table) */
-  .orders-table tbody td:nth-child(1)::before { content: "ID"; }
-  .orders-table tbody td:nth-child(2)::before { content: "Descripción"; }
-  .orders-table tbody td:nth-child(3)::before { content: "Cliente"; }
-  .orders-table tbody td:nth-child(4)::before { content: "Tel"; }
-  .orders-table tbody td:nth-child(5)::before { content: "Estado"; }
-  .orders-table tbody td:nth-child(6)::before { content: "Presupuestos"; }
-  .orders-table tbody td:nth-child(7)::before { content: "Acciones"; }
-
-  /* Labels para tabla de clientes (clients-table) */
-  .clients-table tbody td:nth-child(1)::before { content: "Nombre"; }
-  .clients-table tbody td:nth-child(2)::before { content: "Email"; }
-  .clients-table tbody td:nth-child(3)::before { content: "Tel"; }
-  .clients-table tbody td:nth-child(4)::before { content: "Dirección"; }
-  .clients-table tbody td:nth-child(5)::before { content: "Acciones"; }
-
-  /* Apilar botones y que ocupen todo el ancho */
-  .data-table tbody td:last-child{
-    display:flex;
-    flex-direction:column;
-    gap:8px;
-    align-items:stretch;
-  }
-  .data-table tbody td .btn{ width:100%; }
-
-  /* ajustar paddings para que no empuje texto hacia abajo */
-  .admin-root > section{ padding-bottom:16px; }
-  .admin-root header h2{ margin-bottom:8px; }
-}
-
-/* Asegurar layout correcto de tablas en escritorio y corregir celdas "corridas" */
-.data-table{
-  width:100%;
-  border-collapse:collapse;
-  margin-top:8px;
-  background:transparent;
-  display: table;            /* forzar comportamiento tabla en desktop */
-  table-layout: auto;        /* permitir ajuste natural de columnas */
-  box-sizing: border-box;
-}
-
-/* Forzar comportamiento de thead/tbody/tr/th/td en desktop (evita estilos previos que los conviertan en block) */
-.data-table thead{ display: table-header-group; }
-.data-table tbody{ display: table-row-group; }
-.data-table tr{ display: table-row; }
-.data-table th, .data-table td{ display: table-cell; vertical-align: middle; box-sizing: border-box; }
-
-/* Celdas: alineación y wrapping para evitar que el contenido "salte" fuera de la celda */
-.data-table thead th{
-  text-align:left;
-  padding:10px 8px;
-  font-size:13px;
-  color:var(--gold);
-  border-bottom:1px solid rgba(255,255,255,0.04);
-  white-space:normal;
-  word-break:break-word;
-}
-.data-table tbody td{
-  padding:10px 8px;
-  border-bottom:1px solid rgba(255,255,255,0.02);
-  color:var(--text);
-  font-size:14px;
-  white-space:normal;
-  word-break:break-word;
-}
-
-/* Column centrada */
-.center-cell{ text-align:center; }
-
-/* Limitar ancho de columnas problemáticas (acciones / select) para que no empujen otras celdas */
-.data-table th:nth-child(1), .data-table td:nth-child(1){ width:6%; min-width:48px; max-width:80px; }
-.data-table th:nth-child(6), .data-table td:nth-child(6){ width:12%; min-width:100px; max-width:160px; } /* presupuestos / acciones */
-.data-table th:last-child, .data-table td:last-child{ width:18%; min-width:120px; max-width:260px; }
-
-/* Asegurar selects y botones no rompan layout */
-.data-table td select.input{
-  max-width: 220px;
-  min-width: 120px;
-  width: 100%;
-  box-sizing: border-box;
-}
-.data-table td .btn{
-  white-space:nowrap;
-}
-
-/* --- MÓVIL: convertir a cards solo en <=720px --- */
-/* Mantener el comportamiento de cards que ya implementaste; sólo aquí se aplican */
-@media (max-width: 720px) {
-  .data-table{ display:block; }
-  .data-table thead{ display:none; }
-  .data-table tbody{ display:block; }
-  .data-table tbody tr{
-    display:block;
-    margin-bottom:12px;
-    padding:10px;
-    border-radius:10px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-    border: 1px solid rgba(255,255,255,0.03);
-  }
-  .data-table tbody td{
-    display:flex;
-    flex-direction:column;
-    align-items:flex-start;
-    padding:8px 6px;
-  }
-  /* etiqueta ::before en mobile */
-  .data-table tbody td::before{
-    display:block;
-    margin-bottom:6px;
-    color:#d4c79a;
-    font-weight:700;
-  }
-
-  /* labels para orders-table e clients-table (mantener lo que ya tienes) */
-  .orders-table tbody td:nth-child(1)::before { content: "ID"; }
-  .orders-table tbody td:nth-child(2)::before { content: "Descripción"; }
-  .orders-table tbody td:nth-child(3)::before { content: "Cliente"; }
-  .orders-table tbody td:nth-child(4)::before { content: "Tel"; }
-  .orders-table tbody td:nth-child(5)::before { content: "Estado"; }
-  .orders-table tbody td:nth-child(6)::before { content: "Presupuestos"; }
-  .orders-table tbody td:nth-child(7)::before { content: "Acciones"; }
-
-  .clients-table tbody td:nth-child(1)::before { content: "Nombre"; }
-  .clients-table tbody td:nth-child(2)::before { content: "Email"; }
-  .clients-table tbody td:nth-child(3)::before { content: "Tel"; }
-  .clients-table tbody td:nth-child(4)::before { content: "Dirección"; }
-  .clients-table tbody td:nth-child(5)::before { content: "Acciones"; }
-
-  /* Apilar botones y que ocupen todo el ancho */
-  .data-table tbody td:last-child{
-    display:flex;
-    flex-direction:column;
-    gap:8px;
-    align-items:stretch;
-  }
-  .data-table tbody td .btn{ width:100%; }
-
-  /* ajustar paddings para que no empuje texto hacia abajo */
-  .admin-root > section{ padding-bottom:16px; }
-  .admin-root header h2{ margin-bottom:8px; }
-}
-
-/*
