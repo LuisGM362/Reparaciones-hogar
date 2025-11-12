@@ -669,3 +669,111 @@ input[type="date"], input[type="time"] {
   .order-row-header{ flex-direction:column; align-items:flex-start; }
   .order-desc{ width:100%; }
 }
+
+/* Row de columnas de estado (izquierda -> derecha) */
+.statuses-row{
+  width:100%;
+  display:flex;
+  flex-direction:row;
+  gap:12px;
+  align-items:flex-start;
+  justify-content:flex-start;
+  overflow-x:auto;
+  padding:8px 4px;
+  box-sizing:border-box;
+}
+
+/* Cada columna de estado */
+.status-column{
+  min-width:220px;
+  max-width:320px;
+  flex:0 0 260px; /* ajustar según preferencia */
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00));
+  border:1px solid rgba(255,255,255,0.03);
+  border-radius:10px;
+  padding:10px;
+  box-sizing:border-box;
+  cursor:pointer;
+}
+
+/* resaltar columna activa */
+.status-column.status-active{
+  box-shadow: 0 8px 30px rgba(212,175,55,0.04);
+  border-color: rgba(212,175,55,0.08);
+}
+
+/* header compacto del estado */
+.status-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+}
+.status-label{
+  font-weight:700;
+  color:var(--gold);
+  font-size:14px;
+}
+.status-count{
+  background: rgba(212,175,55,0.08);
+  color:var(--gold);
+  padding:6px 8px;
+  border-radius:8px;
+  font-weight:700;
+  font-size:13px;
+}
+
+/* contenedor de items vertical */
+.status-items{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin-top:4px;
+}
+
+/* estado vacío */
+.status-empty{
+  text-align:center;
+  color:#cfc6b0;
+  padding:12px 6px;
+  border-radius:6px;
+  background:transparent;
+}
+
+/* item breve por pedido (columna) */
+.status-item{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  padding:8px;
+  background: rgba(0,0,0,0.02);
+  border-radius:8px;
+  border:1px solid rgba(255,255,255,0.02);
+}
+.si-top{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  justify-content:space-between;
+}
+.si-id{ font-weight:700; color:var(--gold); }
+.si-desc{ flex:1; color:var(--text); font-size:13px; margin-left:8px; text-align:left; }
+.si-meta{ display:flex; gap:8px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
+.si-client{ color:#dcd4c2; font-size:13px; }
+.si-actions{ display:flex; gap:8px; flex-wrap:wrap; }
+
+/* responsive: columnas se pueden apilar en pantallas pequeñas */
+@media (max-width: 920px){
+  .statuses-row{ gap:10px; }
+  .status-column{ min-width:180px; flex:0 0 200px; }
+}
+@media (max-width: 640px){
+  .statuses-row{
+    flex-wrap:wrap;
+    justify-content:flex-start;
+  }
+  .status-column{ width:100%; flex: 1 1 100%; min-width:unset; max-width:unset; }
+}

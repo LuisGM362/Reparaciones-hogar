@@ -313,87 +313,48 @@ export default function AdminPanel({ onLogout }) {
       {/* Tab content */}
       {activeTab === 'notifications' && (
         <section style={{ marginTop: 16 }}>
-          {/* barra de estados (fila) */}
-          <div className="status-bar" style={{ marginBottom: 12 }}>
-            {STATUS_LIST.map(s => (
-              <button
-                key={s.key}
-                className={`demo-btn`}
-                onClick={() => setActiveStatus(s.key)}
-                style={{ borderWidth: activeStatus === s.key ? 2 : 1 }}
-              >
-                {s.label}
-              </button>
-            ))}
-          </div>
+          {/* Reemplaza status-bar + listado por columnas de estados con sus items */}
+          <div className="statuses-row" style={{ marginBottom: 12 }}>
+            {STATUS_LIST.map(s => {
+              const list = orders.filter(o => o.status === s.key);
+              return (
+                <div
+                  key={s.key}
+                  className={`status-column ${activeStatus === s.key ? 'status-active' : ''}`}
+                  onClick={() => setActiveStatus(s.key)}
+                >
+                  <div className="status-header">
+                    <div className="status-label">{s.label}</div>
+                    <div className="status-count">{list.length}</div>
+                  </div>
 
-          <div>
-            <h3 style={{ color: 'var(--text)', textAlign: 'center' }}>
-              {STATUS_LIST.find(s => s.key === activeStatus).label} ({ordersByStatus.length})
-            </h3>
-
-            {ordersByStatus.length === 0 ? (
-              <div className="empty-state" style={{ color: '#cfc6b0' }}>No hay pedidos en esta categoría.</div>
-            ) : (
-              <div className="orders-list">
-                {ordersByStatus.map(o => {
-                  const clientForOrder = clients.find(c => c.email === o.clientEmail);
-                  const addr = clientForOrder?.address || {};
-                  const direccion = `${addr.locality || ''}${addr.locality ? ', ' : ''}${addr.street || ''} ${addr.number || ''}` +
-                    (addr.type === 'departamento' ? ` · Piso ${addr.floor || '-'} · Puerta ${addr.door || '-'}` : ` · ${addr.type || 'Casa'}`);
-                  return (
-                    <div key={o.id} className="order-card">
-                      <div className="order-row-header">
-                        <div className="order-id">#{o.id}</div>
-                        <div className="order-desc">{o.description}</div>
-                        <div className="order-client">{o.clientEmail} · {o.phone}</div>
-                        <div className="order-address">{direccion}</div>
-                        <div className="order-status">
-                          <select value={o.status} onChange={(e) => handleStatusChange(o.id, e)} className="input">
-                            {STATUS_LIST.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
-                          </select>
-                        </div>
-                      </div>
-
-                      <div className="order-row-body">
-                        <div className="order-presupuestos">Presupuestos: {o.totalPresupuesto ? `$${(o.totalPresupuesto).toFixed(2)}` : '-'}</div>
-                        <div className="order-actions">
-                          <button className="btn demo-btn" onClick={() => {
-                            const client = clients.find(c => c.email === o.clientEmail);
-                            sendWhatsApp(client ? client.phone : o.phone, `Consulta sobre pedido #${o.id}`);
-                          }}>Contactar</button>
-                          {o.status === 'presupuestado' && (
-                            <button className="btn submit-btn" onClick={() => openBudgetModal(o)}>Agregar presupuesto</button>
-                          )}
-                        </div>
-
-                        {/* lista de presupuestos / items en columna */}
-                        {o.presupuestos?.length > 0 && (
-                          <div className="order-presupuesto-list">
-                            {o.presupuestos.map((p, idx) => (
-                              <div key={idx} className="presupuesto-entry">
-                                <div className="presu-meta">{new Date(p.date).toLocaleString()} — Total: ${ (p.total || p.amount || 0).toFixed(2) }</div>
-                                {p.items?.length > 0 && (
-                                  <div className="presu-items">
-                                    {p.items.map((it, i) => (
-                                      <div key={i} className="presu-item">
-                                        <div className="item-desc">{it.desc}</div>
-                                        <div className="item-meta">{it.qty} x ${it.unitPrice?.toFixed(2) || it.unit?.toFixed(2)} = ${ (it.total || (it.qty * (it.unitPrice || it.unit)) ).toFixed(2) }</div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                )}
-                                {p.note && <div className="presu-note">Nota: {p.note}</div>}
+                  <div className="status-items">
+                    {list.length === 0 ? (
+                      <div className="status-empty">0 elementos</div>
+                    ) : (
+                      list.map(o => {
+                        const client = clients.find(c => c.email === o.clientEmail);
+                        return (
+                          <div className="status-item" key={o.id}>
+                            <div className="si-top">
+                              <div className="si-id">#{o.id}</div>
+                              <div className="si-desc">{o.description}</div>
+                            </div>
+                            <div className="si-meta">
+                              <div className="si-client">{o.clientEmail}{client ? ` · ${client.phone}` : ''}</div>
+                              <div className="si-actions">
+                                <button className="btn demo-btn" onClick={(ev) => { ev.stopPropagation(); sendWhatsApp(client ? client.phone : o.phone, `Consulta sobre pedido #${o.id}`); }}>Contactar</button>
+                                {o.status === 'presupuestado' && <button className="btn submit-btn" onClick={(ev) => { ev.stopPropagation(); openBudgetModal(o); }}>Agregar presupuesto</button>}
                               </div>
-                            ))}
+                            </div>
                           </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </section>
       )}
