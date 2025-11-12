@@ -517,12 +517,13 @@ header h2, header h3 { text-align:center; }
   gap:20px;
   align-items:flex-start;
   flex-wrap:wrap;
+  justify-content:center; /* evita que el contenido se quede pegado a la derecha si falta la columna lateral */
 }
 
 /* Columnas internas ocupen el ancho disponible y se centren */
 .admin-root > section > div:first-child{
   flex:1 1 640px;
-  max-width:calc(100% - 380px);
+  max-width:100%;          /* permitir ocupar todo el ancho cuando no hay aside */
   margin:0;
   box-sizing:border-box;
 }
