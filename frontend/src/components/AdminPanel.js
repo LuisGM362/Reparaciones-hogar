@@ -61,7 +61,8 @@ export default function AdminPanel({ onLogout }) {
   // budget modal (per-order) — only available from orders with status 'presupuestado'
   const [budgetModalOpen, setBudgetModalOpen] = useState(false);
   const [budgetOrder, setBudgetOrder] = useState(null);
-  const [budgetAmount, setBudgetAmount] = useState('');
+  const [budgetItems, setBudgetItems] = useState([]); // items added in the modal
+  const [newBudgetItem, setNewBudgetItem] = useState({ desc: '', qty: '', unit: '' });
   const [budgetNote, setBudgetNote] = useState('');
 
   const ordersByStatus = orders.filter(o => o.status === activeStatus);
@@ -175,7 +176,8 @@ export default function AdminPanel({ onLogout }) {
       return;
     }
     setBudgetOrder(order);
-    setBudgetAmount('');
+    setBudgetItems([]);
+    setNewBudgetItem({ desc: '', qty: '', unit: '' });
     setBudgetNote('');
     setBudgetModalOpen(true);
     setMessage('');
@@ -186,26 +188,46 @@ export default function AdminPanel({ onLogout }) {
     setBudgetOrder(null);
   };
 
+  const addBudgetItem = () => {
+    const desc = (newBudgetItem.desc || '').trim();
+    const qty = parseFloat(newBudgetItem.qty);
+    const unit = parseFloat(newBudgetItem.unit);
+    if (!desc || isNaN(qty) || qty <= 0 || isNaN(unit) || unit <= 0) {
+      setMessage('Complete descripción, cantidad y monto unitario válidos para el item.');
+      return;
+    }
+    const item = { desc, qty, unitPrice: unit, total: qty * unit };
+    setBudgetItems(prev => [...prev, item]);
+    setNewBudgetItem({ desc: '', qty: '', unit: '' });
+    setMessage('');
+  };
+
+  const removeBudgetItem = (index) => {
+    setBudgetItems(prev => prev.filter((_, i) => i !== index));
+  };
+
   const submitBudgetForOrder = (e) => {
     e.preventDefault();
     if (!budgetOrder) return;
-    const amount = parseFloat(budgetAmount);
-    if (isNaN(amount) || amount <= 0) {
-      setMessage('Ingrese un monto válido mayor a 0.');
+    if (!budgetItems.length) {
+      setMessage('Agregue al menos un item al presupuesto antes de guardar.');
       return;
     }
     const id = budgetOrder.id;
-    const newItem = { amount, note: budgetNote || '', date: new Date().toISOString() };
+    const total = budgetItems.reduce((s, it) => s + (it.total || 0), 0);
+    const newPresupuestoEntry = { items: budgetItems, total, note: budgetNote || '', date: new Date().toISOString() };
+
     const updated = orders.map(o => {
       if (o.id !== id) return o;
-      const presupuestos = [...(o.presupuestos || []), newItem];
-      const totalPresupuesto = presupuestos.reduce((s, p) => s + (p.amount || 0), 0);
+      const presupuestos = [...(o.presupuestos || []), newPresupuestoEntry];
+      const totalPresupuesto = presupuestos.reduce((s, p) => s + (p.total || 0), 0);
       return { ...o, presupuestos, totalPresupuesto };
     });
+
     setOrders(updated);
     const client = clients.find(c => c.email === budgetOrder.clientEmail);
     const phone = client ? client.phone : budgetOrder.phone;
-    const text = `Se agregó un presupuesto de $${amount.toFixed(2)} al pedido #${id}. Total presupuestos: $${updated.find(u => u.id === id).totalPresupuesto.toFixed(2)}.`;
+    const text = `Se agregó un presupuesto al pedido #${id}. Total agregado: $${total.toFixed(2)}. Total presupuestos acumulado: $${updated.find(u => u.id === id).totalPresupuesto.toFixed(2)}.`;
     sendWhatsApp(phone, text);
     setMessage(`Presupuesto agregado a pedido #${id} y notificado por WhatsApp.`);
     closeBudgetModal();
@@ -442,22 +464,66 @@ export default function AdminPanel({ onLogout }) {
               <button className="btn register-btn" onClick={closeBudgetModal}>Cerrar</button>
             </header>
 
-            <form onSubmit={submitBudgetForOrder} style={{ display: 'grid', gap: 8, marginTop: 12 }}>
-              <input
-                value={budgetAmount}
-                onChange={(e) => setBudgetAmount(e.target.value)}
-                placeholder="Monto (ej. 1500.00)"
-                className="input"
-              />
+            <form onSubmit={submitBudgetForOrder} style={{ display: 'grid', gap: 10, marginTop: 12 }}>
+              {/* Nuevo item */}
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <input
+                  className="input"
+                  placeholder="Descripción del item"
+                  value={newBudgetItem.desc}
+                  onChange={(e) => setNewBudgetItem(prev => ({ ...prev, desc: e.target.value }))}
+                  style={{ flex: '1 1 240px' }}
+                />
+                <input
+                  className="input"
+                  placeholder="Cantidad"
+                  value={newBudgetItem.qty}
+                  onChange={(e) => setNewBudgetItem(prev => ({ ...prev, qty: e.target.value }))}
+                  style={{ width: 100 }}
+                />
+                <input
+                  className="input"
+                  placeholder="Precio unitario"
+                  value={newBudgetItem.unit}
+                  onChange={(e) => setNewBudgetItem(prev => ({ ...prev, unit: e.target.value }))}
+                  style={{ width: 140 }}
+                />
+                <button type="button" className="btn submit-btn" onClick={addBudgetItem}>Agregar item</button>
+              </div>
+
+              {/* Lista de items agregados */}
+              {budgetItems.length > 0 && (
+                <div style={{ borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: 8 }}>
+                  <strong>Items</strong>
+                  <ul style={{ margin: '8px 0', padding: 0, listStyle: 'none' }}>
+                    {budgetItems.map((it, idx) => (
+                      <li key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, padding: '6px 0' }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontWeight: 700 }}>{it.desc}</div>
+                          <div style={{ color: '#cfc6b0', fontSize: 13 }}>{it.qty} x ${it.unitPrice.toFixed(2)} = ${it.total.toFixed(2)}</div>
+                        </div>
+                        <div>
+                          <button type="button" className="btn register-btn" onClick={() => removeBudgetItem(idx)}>Eliminar</button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                  <div style={{ textAlign: 'right', color: 'var(--text)' }}>
+                    Total agregado: ${budgetItems.reduce((s, i) => s + (i.total || 0), 0).toFixed(2)}
+                  </div>
+                </div>
+              )}
+
               <input
                 value={budgetNote}
                 onChange={(e) => setBudgetNote(e.target.value)}
                 placeholder="Nota (opcional)"
                 className="input"
               />
+
               <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                 <button type="button" className="btn register-btn" onClick={closeBudgetModal}>Cancelar</button>
-                <button type="submit" className="btn submit-btn">Guardar y notificar</button>
+                <button type="submit" className="btn submit-btn" disabled={budgetItems.length === 0}>Guardar y notificar</button>
               </div>
             </form>
           </div>
