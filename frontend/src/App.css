@@ -594,3 +594,44 @@ input[type="date"], input[type="time"] {
   border: 1px solid rgba(255,255,255,0.04);
   border-radius: 6px;
 }
+
+/* Status bar: ordenar botones de izquierda a derecha y ocupar toda la fila */
+.status-bar{
+  width:100%;
+  display:flex;
+  gap:8px;
+  justify-content:flex-start; /* izquierda a derecha */
+  align-items:center;
+  flex-wrap:wrap;
+  margin-bottom:8px;
+}
+
+/* Ajuste visual para los botones de estado dentro del status-bar */
+.status-bar .demo-btn{
+  margin-right:0; /* el gap ya gestiona el espacio */
+  padding:6px 10px;
+}
+
+/* Empty state: cuando no hay notificaciones, centrar texto y colocarlo abajo */
+.empty-state{
+  width:100%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+  margin-top:16px;
+  padding:12px 8px;
+  box-sizing:border-box;
+}
+
+/* Asegurar que el contenedor principal mantenga el orden centrado cuando no hay notificaciones */
+.admin-root > section > div:first-child {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}

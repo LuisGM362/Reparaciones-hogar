@@ -313,13 +313,13 @@ export default function AdminPanel({ onLogout }) {
       {/* Tab content */}
       {activeTab === 'notifications' && (
         <section style={{ marginTop: 16 }}>
-          <div style={{ marginBottom: 12, textAlign: 'center' }}>
+          <div className="status-bar" style={{ marginBottom: 12 }}>
             {STATUS_LIST.map(s => (
               <button
                 key={s.key}
                 className={`demo-btn`}
                 onClick={() => setActiveStatus(s.key)}
-                style={{ marginRight: 8, borderWidth: activeStatus === s.key ? 2 : 1 }}
+                style={{ borderWidth: activeStatus === s.key ? 2 : 1 }}
               >
                 {s.label}
               </button>
@@ -327,14 +327,14 @@ export default function AdminPanel({ onLogout }) {
           </div>
 
           <div>
-            <h3 style={{ color: 'var(--text)', textAlign: 'center' }}>
-              {STATUS_LIST.find(s => s.key === activeStatus).label} ({ordersByStatus.length})
-            </h3>
-
+             <h3 style={{ color: 'var(--text)', textAlign: 'center' }}>
+               {STATUS_LIST.find(s => s.key === activeStatus).label} ({ordersByStatus.length})
+             </h3>
+ 
             {ordersByStatus.length === 0 ? (
-              <div style={{ color: '#cfc6b0', textAlign: 'center' }}>No hay pedidos en esta categoría.</div>
+              <div className="empty-state" style={{ color: '#cfc6b0' }}>No hay pedidos en esta categoría.</div>
             ) : (
-              <table className="data-table orders-table">
+               <table className="data-table orders-table">
                 <thead>
                   <tr>
                     <th>ID</th>
