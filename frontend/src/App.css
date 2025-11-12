@@ -520,72 +520,126 @@ header h2, header h3 { text-align:center; }
   justify-content:center; /* evita que el contenido se quede pegado a la derecha si falta la columna lateral */
 }
 
-/* Ajustes del contenedor principal: no centrar todos los hijos, permitir que la status-bar ocupe el ancho */
+/* Columnas internas ocupen el ancho disponible y se centren */
 .admin-root > section > div:first-child{
   flex:1 1 640px;
-  max-width:100%;
+  max-width:100%;          /* permitir ocupar todo el ancho cuando no hay aside */
   margin:0;
   box-sizing:border-box;
   display: flex;
   flex-direction: column;
-  align-items: flex-start; /* permitir que la status-bar ocupe el ancho completo */
+  align-items: center; /* centra contenidos cuando no hay tabla/aside */
   justify-content: flex-start;
   width: 100%;
 }
 
-/* Forzar que la barra de estados ocupe todo el ancho del contenedor */
-.admin-root > section > div:first-child .status-bar {
-  align-self: stretch;
-  justify-content: flex-start;
-}
-
-/* Contenido de notificaciones: que su *contenido interno* se centre,
-   pero no fuerce la barra a centrarse */
-.notifications-content {
-  width: 100%;
-  display: flex;
-  flex-direction: row;       /* izquierda -> derecha */
-  align-items: flex-start;
-  justify-content: flex-start;
-  gap: 12px;
-  box-sizing: border-box;
-  flex-wrap: wrap;          /* permite que el contenido pase a la siguiente línea si falta espacio */
-}
-
-/* Título: ocupa sólo lo necesario, centrado verticalmente respecto a la tabla */
-.notifications-content > h3 {
-  flex: 0 0 auto;
-  margin: 0;
-  align-self: center;
-}
-
-/* Tabla: toma el espacio restante y se ajusta al contenedor */
-.notifications-content .data-table {
-  flex: 1 1 640px; /* crecerá y se encogerá; base sugerida */
-  min-width: 280px;
-  max-width: 100%;
-}
-
-/* Mensaje vacío: cuando no hay resultados, ocupar toda la fila (centrado) */
-.notifications-content .empty-state {
-  flex: 1 1 100%;
-  text-align: center;
+/* Mensaje "no hay pedidos" / estados vacíos: asegurar centrado y espacio */
+.admin-root .no-results,
+.admin-root .empty-state,
+.admin-root > section > div:first-child > div[style*="textAlign: 'center'"], /* fallback para inline center */
+.admin-root > section > div:first-child > .empty-message {
   display: flex;
   align-items: center;
   justify-content: center;
+  text-align: center;
+  margin: 20px 0;
+  width: 100%;
 }
 
-/* Responsive: en pantallas pequeñas volver a columna */
+/* Asegurar que la tabla no se "pegue" a la derecha cuando está ausente la columna lateral */
+.admin-root > section {
+  justify-content: center;
+}
+
+/* Mantener la tabla a 100% dentro del contenedor centralizado */
+.admin-root .data-table {
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Iconos dorados para inputs date/time: reemplazo con SVG inline (color #d4c79a) */
+input[type="date"],
+input[type="time"] {
+  -webkit-appearance: none;
+  -moz-appearance: textfield;
+  appearance: none;
+  padding-right: 42px; /* espacio para icono a la derecha */
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 20px 20px;
+}
+
+/* Calendar icon (date) - SVG fill = #d4c79a */
+input[type="date"] {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%23d4c79a' d='M7 10h5v5H7z' opacity='0.99'/><path fill='%23d4c79a' d='M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H5V9h14v9z'/></svg>");
+}
+
+/* Clock icon (time) - SVG fill = #d4c79a */
+input[type="time"] {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%23d4c79a' d='M12 1a11 11 0 1 0 0 22 11 11 0 0 0 0-22zm1 11.59V6h-2v7h6v-2h-4z'/></svg>");
+}
+
+/* WebKit native indicator fallback: make it visible but tint with filter if still present */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+  opacity: 0.00001; /* hide native indicator so our SVG shows consistently */
+  width: 20px;
+  height: 20px;
+}
+
+/* Keep inputs visually consistent on dark background */
+input[type="date"], input[type="time"] {
+  background-color: transparent;
+  color: var(--text);
+  border: 1px solid rgba(255,255,255,0.04);
+  border-radius: 6px;
+}
+
+/* Status bar: ordenar botones de izquierda a derecha y ocupar toda la fila */
+.status-bar{
+  width:100%;
+  display:flex;
+  gap:8px;
+  justify-content:flex-start; /* izquierda a derecha */
+  align-items:center;
+  flex-wrap:wrap;
+  margin-bottom:8px;
+}
+
+/* Forzar barra de estados en una fila (izquierda -> derecha) */
+.status-bar {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 6px 0;
+  box-sizing: border-box;
+  overflow-x: auto; /* permitir scroll si falta espacio en pantallas muy pequeñas */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Cada botón de estado mantiene su ancho y no se parte en varias líneas */
+.status-bar .demo-btn {
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Contenido de notificaciones siempre apilado verticalmente debajo de la barra */
+.notifications-content {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center; /* centra títulos, mensajes y tabla */
+  gap: 12px;
+  box-sizing: border-box;
+}
+
+/* En pantallas pequeñas permitimos wrap en la barra para evitar overflow excesivo */
 @media (max-width: 720px) {
-  .notifications-content {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .notifications-content .data-table {
-    flex: unset;
-    min-width: unset;
-  }
-  .notifications-content > h3 {
-    align-self: center;
-  }
+  .status-bar { flex-wrap: wrap; overflow-x: visible; }
+  .notifications-content { padding: 0 12px; }
 }
