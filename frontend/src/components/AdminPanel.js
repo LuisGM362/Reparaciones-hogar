@@ -314,7 +314,7 @@ export default function AdminPanel({ onLogout }) {
       {activeTab === 'notifications' && (
         <section style={{ marginTop: 16 }}>
           {/* barra de estados (fila) */}
-          <div className="status-bar" style={{ marginBottom: 12 }} aria-label="Estados">
+          <div className="status-bar" style={{ marginBottom: 12 }}>
             {STATUS_LIST.map(s => (
               <button
                 key={s.key}
@@ -327,65 +327,72 @@ export default function AdminPanel({ onLogout }) {
             ))}
           </div>
 
-          {/* contenido de notificaciones: siempre apila verticalmente debajo de la barra */}
-          <div className="notifications-content">
-             <h3 style={{ color: 'var(--text)', textAlign: 'center' }}>
-               {STATUS_LIST.find(s => s.key === activeStatus).label} ({ordersByStatus.length})
-             </h3>
- 
-             {ordersByStatus.length === 0 ? (
-               <div className="empty-state" style={{ color: '#cfc6b0' }}>No hay pedidos en esta categoría.</div>
-             ) : (
-               <table className="data-table orders-table">
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Descripción</th>
-                    <th>Cliente (email)</th>
-                    <th>Tel</th>
-                    <th>Dirección</th>
-                    <th>Estado</th>
-                    <th>Presupuestos</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {ordersByStatus.map(o => {
-                    const clientForOrder = clients.find(c => c.email === o.clientEmail);
-                    const addr = clientForOrder?.address || {};
-                    const direccion = `${addr.locality || ''}${addr.locality ? ', ' : ''}${addr.street || ''} ${addr.number || ''}` +
-                      (addr.type === 'departamento' ? ` · Piso ${addr.floor || '-'} · Puerta ${addr.door || '-'}` : ` · ${addr.type || 'Casa'}`);
-                    return (
-                      <tr key={o.id}>
-                        <td className="center-cell">#{o.id}</td>
-                        <td>{o.description}</td>
-                        <td className="center-cell">{o.clientEmail}</td>
-                        <td className="center-cell">{o.phone}</td>
-                        <td>{direccion}</td>
-                        <td className="center-cell">
+          <div>
+            <h3 style={{ color: 'var(--text)', textAlign: 'center' }}>
+              {STATUS_LIST.find(s => s.key === activeStatus).label} ({ordersByStatus.length})
+            </h3>
+
+            {ordersByStatus.length === 0 ? (
+              <div className="empty-state" style={{ color: '#cfc6b0' }}>No hay pedidos en esta categoría.</div>
+            ) : (
+              <div className="orders-list">
+                {ordersByStatus.map(o => {
+                  const clientForOrder = clients.find(c => c.email === o.clientEmail);
+                  const addr = clientForOrder?.address || {};
+                  const direccion = `${addr.locality || ''}${addr.locality ? ', ' : ''}${addr.street || ''} ${addr.number || ''}` +
+                    (addr.type === 'departamento' ? ` · Piso ${addr.floor || '-'} · Puerta ${addr.door || '-'}` : ` · ${addr.type || 'Casa'}`);
+                  return (
+                    <div key={o.id} className="order-card">
+                      <div className="order-row-header">
+                        <div className="order-id">#{o.id}</div>
+                        <div className="order-desc">{o.description}</div>
+                        <div className="order-client">{o.clientEmail} · {o.phone}</div>
+                        <div className="order-address">{direccion}</div>
+                        <div className="order-status">
                           <select value={o.status} onChange={(e) => handleStatusChange(o.id, e)} className="input">
                             {STATUS_LIST.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
                           </select>
-                        </td>
-                        <td className="center-cell">
-                          {o.totalPresupuesto ? `$${(o.totalPresupuesto).toFixed(2)}` : '-'}
-                        </td>
-                        <td className="center-cell">
-                          <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
-                            <button className="btn demo-btn" onClick={() => {
-                              const client = clients.find(c => c.email === o.clientEmail);
-                              sendWhatsApp(client ? client.phone : o.phone, `Consulta sobre pedido #${o.id}`);
-                            }}>Contactar</button>
-                            {o.status === 'presupuestado' && (
-                              <button className="btn submit-btn" onClick={() => openBudgetModal(o)}>Agregar presupuesto</button>
-                            )}
+                        </div>
+                      </div>
+
+                      <div className="order-row-body">
+                        <div className="order-presupuestos">Presupuestos: {o.totalPresupuesto ? `$${(o.totalPresupuesto).toFixed(2)}` : '-'}</div>
+                        <div className="order-actions">
+                          <button className="btn demo-btn" onClick={() => {
+                            const client = clients.find(c => c.email === o.clientEmail);
+                            sendWhatsApp(client ? client.phone : o.phone, `Consulta sobre pedido #${o.id}`);
+                          }}>Contactar</button>
+                          {o.status === 'presupuestado' && (
+                            <button className="btn submit-btn" onClick={() => openBudgetModal(o)}>Agregar presupuesto</button>
+                          )}
+                        </div>
+
+                        {/* lista de presupuestos / items en columna */}
+                        {o.presupuestos?.length > 0 && (
+                          <div className="order-presupuesto-list">
+                            {o.presupuestos.map((p, idx) => (
+                              <div key={idx} className="presupuesto-entry">
+                                <div className="presu-meta">{new Date(p.date).toLocaleString()} — Total: ${ (p.total || p.amount || 0).toFixed(2) }</div>
+                                {p.items?.length > 0 && (
+                                  <div className="presu-items">
+                                    {p.items.map((it, i) => (
+                                      <div key={i} className="presu-item">
+                                        <div className="item-desc">{it.desc}</div>
+                                        <div className="item-meta">{it.qty} x ${it.unitPrice?.toFixed(2) || it.unit?.toFixed(2)} = ${ (it.total || (it.qty * (it.unitPrice || it.unit)) ).toFixed(2) }</div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                                {p.note && <div className="presu-note">Nota: {p.note}</div>}
+                              </div>
+                            ))}
                           </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </div>
         </section>

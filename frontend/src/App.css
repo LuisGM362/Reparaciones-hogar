@@ -595,51 +595,77 @@ input[type="date"], input[type="time"] {
   border-radius: 6px;
 }
 
-/* Status bar: ordenar botones de izquierda a derecha y ocupar toda la fila */
-.status-bar{
+/* status-bar: fila (izq->der) */
+.status-bar {
   width:100%;
   display:flex;
+  flex-direction:row;
+  flex-wrap:nowrap;
+  align-items:center;
+  justify-content:flex-start;
   gap:8px;
-  justify-content:flex-start; /* izquierda a derecha */
+  overflow-x:auto;
+  padding:6px 0;
+}
+
+/* mensaje cuando no hay elementos: centrado y abajo */
+.empty-state{
+  width:100%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+  margin-top:16px;
+  padding:12px 8px;
+  box-sizing:border-box;
+}
+
+/* lista de órdenes: apilar verticalmente */
+.orders-list{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  margin-top:12px;
+}
+
+/* tarjeta de pedido */
+.order-card{
+  width:100%;
+  border-radius:8px;
+  padding:12px;
+  background: rgba(255,255,255,0.02);
+  border:1px solid rgba(255,255,255,0.03);
+  box-sizing:border-box;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+/* header de cada tarjeta: disposición responsiva */
+.order-row-header{
+  display:flex;
+  gap:12px;
   align-items:center;
   flex-wrap:wrap;
-  margin-bottom:8px;
 }
+.order-id{ font-weight:700; color:var(--gold); }
+.order-desc{ flex:1 1 240px; min-width:160px; }
+.order-client, .order-address{ color:var(--text); font-size:13px; min-width:140px; }
+.order-status{ min-width:150px; }
 
-/* Forzar barra de estados en una fila (izquierda -> derecha) */
-.status-bar {
-  width: 100%;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 8px;
-  padding: 6px 0;
-  box-sizing: border-box;
-  overflow-x: auto; /* permitir scroll si falta espacio en pantallas muy pequeñas */
-  -webkit-overflow-scrolling: touch;
-}
+/* cuerpo con acciones y lista de presupuestos en columna */
+.order-row-body{ display:flex; flex-direction:column; gap:8px; }
+.order-actions{ display:flex; gap:8px; flex-wrap:wrap; }
 
-/* Cada botón de estado mantiene su ancho y no se parte en varias líneas */
-.status-bar .demo-btn {
-  white-space: nowrap;
-  display: inline-flex;
-  align-items: center;
-}
+/* presupuestos/items list - columna */
+.order-presupuesto-list{ display:flex; flex-direction:column; gap:8px; margin-top:6px; }
+.presupuesto-entry{ padding:8px; border-top:1px solid rgba(255,255,255,0.02); }
+.presu-items{ display:flex; flex-direction:column; gap:6px; margin-top:6px; }
+.presu-item{ display:flex; justify-content:space-between; gap:12px; font-size:13px; color:var(--text); }
 
-/* Contenido de notificaciones siempre apilado verticalmente debajo de la barra */
-.notifications-content {
-  width: 100%;
-  display: flex;
-  flex-direction: row;
-  align-items: center; /* centra títulos, mensajes y tabla */
-  gap: 12px;
-  box-sizing: border-box;
-}
-
-/* En pantallas pequeñas permitimos wrap en la barra para evitar overflow excesivo */
-@media (max-width: 720px) {
-  .status-bar { flex-wrap: wrap; overflow-x: visible; }
-  .notifications-content { padding: 0 12px; }
+/* responsive: mantener orden vertical en móvil */
+@media (max-width:720px){
+  .status-bar{ flex-wrap:wrap; overflow-x:visible; }
+  .order-row-header{ flex-direction:column; align-items:flex-start; }
+  .order-desc{ width:100%; }
 }
