@@ -305,7 +305,7 @@ export default function AdminPanel({ onLogout }) {
             <h3 style={{ margin: 0, color: 'var(--text)', textAlign: 'center' }}>Clientes ({clients.length})</h3>
           </div>
 
-          <div>
+          <div style={{ width: '100%', boxSizing: 'border-box' }}>
             <table className="data-table clients-table">
               <thead>
                 <tr>
@@ -344,10 +344,11 @@ export default function AdminPanel({ onLogout }) {
                 })}
               </tbody>
             </table>
-          </div>
 
-          <div style={{ marginTop: 12, textAlign: 'center' }}>
-            <button className="btn submit-btn" onClick={() => openClientModal(null)}>Agregar nuevo cliente</button>
+            {/* Agregar nuevo cliente: ubicado debajo de la tabla (centrado) */}
+            <div style={{ marginTop: 12, textAlign: 'center' }}>
+              <button className="btn submit-btn" onClick={() => openClientModal(null)}>Agregar nuevo cliente</button>
+            </div>
           </div>
         </section>
       )}
