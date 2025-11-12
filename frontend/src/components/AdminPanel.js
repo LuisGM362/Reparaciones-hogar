@@ -257,41 +257,47 @@ export default function AdminPanel({ onLogout }) {
                     <th>Descripción</th>
                     <th>Cliente (email)</th>
                     <th>Tel</th>
+                    <th>Dirección</th>
                     <th>Estado</th>
                     <th>Presupuestos</th>
                     <th>Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {ordersByStatus.map(o => (
-                    <tr key={o.id}>
-                      <td className="center-cell">#{o.id}</td>
-                      <td>{o.description}</td>
-                      <td className="center-cell">{o.clientEmail}</td>
-                      <td className="center-cell">{o.phone}</td>
-                      <td className="center-cell">
-                        <select value={o.status} onChange={(e) => handleStatusChange(o.id, e)} className="input">
-                          {STATUS_LIST.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
-                        </select>
-                      </td>
-                      <td className="center-cell">
-                        {o.totalPresupuesto ? `$${(o.totalPresupuesto).toFixed(2)}` : '-'}
-                      </td>
-                      <td className="center-cell">
-                        <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
-                          <button className="btn demo-btn" onClick={() => {
-                            const client = clients.find(c => c.email === o.clientEmail);
-                            sendWhatsApp(client ? client.phone : o.phone, `Consulta sobre pedido #${o.id}`);
-                          }}>Contactar</button>
-
-                          {/* Only allow adding presupuesto if order status is 'presupuestado' */}
-                          {o.status === 'presupuestado' && (
-                            <button className="btn submit-btn" onClick={() => openBudgetModal(o)}>Agregar presupuesto</button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                  {ordersByStatus.map(o => {
+                    const clientForOrder = clients.find(c => c.email === o.clientEmail);
+                    const addr = clientForOrder?.address || {};
+                    const direccion = `${addr.locality || ''}${addr.locality ? ', ' : ''}${addr.street || ''} ${addr.number || ''}` +
+                      (addr.type === 'departamento' ? ` · Piso ${addr.floor || '-'} · Puerta ${addr.door || '-'}` : ` · ${addr.type || 'Casa'}`);
+                    return (
+                      <tr key={o.id}>
+                        <td className="center-cell">#{o.id}</td>
+                        <td>{o.description}</td>
+                        <td className="center-cell">{o.clientEmail}</td>
+                        <td className="center-cell">{o.phone}</td>
+                        <td>{direccion}</td>
+                        <td className="center-cell">
+                          <select value={o.status} onChange={(e) => handleStatusChange(o.id, e)} className="input">
+                            {STATUS_LIST.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
+                          </select>
+                        </td>
+                        <td className="center-cell">
+                          {o.totalPresupuesto ? `$${(o.totalPresupuesto).toFixed(2)}` : '-'}
+                        </td>
+                        <td className="center-cell">
+                          <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
+                            <button className="btn demo-btn" onClick={() => {
+                              const client = clients.find(c => c.email === o.clientEmail);
+                              sendWhatsApp(client ? client.phone : o.phone, `Consulta sobre pedido #${o.id}`);
+                            }}>Contactar</button>
+                            {o.status === 'presupuestado' && (
+                              <button className="btn submit-btn" onClick={() => openBudgetModal(o)}>Agregar presupuesto</button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             )}
