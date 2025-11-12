@@ -544,81 +544,48 @@ header h2, header h3 { text-align:center; }
 .notifications-content {
   width: 100%;
   display: flex;
-  flex-direction: column;
-  align-items: stretch; /* los elementos interiores (h3, tabla, empty-state) se ajustan por su propio centrado */
+  flex-direction: row;       /* izquierda -> derecha */
+  align-items: flex-start;
+  justify-content: flex-start;
   gap: 12px;
   box-sizing: border-box;
+  flex-wrap: wrap;          /* permite que el contenido pase a la siguiente línea si falta espacio */
 }
 
-/* Centrar título y mensajes dentro del contenedor de notificaciones */
-.notifications-content h3,
-.notifications-content .empty-state {
-  width: 100%;
-  text-align: center;
+/* Título: ocupa sólo lo necesario, centrado verticalmente respecto a la tabla */
+.notifications-content > h3 {
+  flex: 0 0 auto;
+  margin: 0;
+  align-self: center;
 }
 
-/* Asegurar tabla centrada y ancho completo dentro del contenido */
+/* Tabla: toma el espacio restante y se ajusta al contenedor */
 .notifications-content .data-table {
-  margin: 0 auto;
-  width: 100%;
+  flex: 1 1 640px; /* crecerá y se encogerá; base sugerida */
+  min-width: 280px;
   max-width: 100%;
 }
 
-/* Mantener mensaje vacío centrado */
-.empty-state{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  text-align:center;
-  padding:12px 8px;
-  box-sizing:border-box;
-}
-
-/* Status bar: ordenar botones de izquierda a derecha y ocupar toda la fila */
-.status-bar{
-  width:100%;
-  display:flex;
-  gap:8px;
-  justify-content:flex-start; /* izquierda a derecha */
-  align-items:center;
-  flex-wrap:wrap;
-  margin-bottom:8px;
-}
-
-/* Forzar barra de estados en una fila (izquierda -> derecha) */
-.status-bar {
-  width: 100%;
+/* Mensaje vacío: cuando no hay resultados, ocupar toda la fila (centrado) */
+.notifications-content .empty-state {
+  flex: 1 1 100%;
+  text-align: center;
   display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
   align-items: center;
-  justify-content: flex-start;
-  gap: 8px;
-  padding: 6px 0;
-  box-sizing: border-box;
-  overflow-x: auto; /* permitir scroll si falta espacio en pantallas muy pequeñas */
-  -webkit-overflow-scrolling: touch;
+  justify-content: center;
 }
 
-/* Cada botón de estado mantiene su ancho y no se parte en varias líneas */
-.status-bar .demo-btn {
-  white-space: nowrap;
-  display: inline-flex;
-  align-items: center;
-}
-
-/* Contenido de notificaciones siempre apilado verticalmente debajo de la barra */
-.notifications-content {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center; /* centra títulos, mensajes y tabla */
-  gap: 12px;
-  box-sizing: border-box;
-}
-
-/* En pantallas pequeñas permitimos wrap en la barra para evitar overflow excesivo */
+/* Responsive: en pantallas pequeñas volver a columna */
 @media (max-width: 720px) {
-  .status-bar { flex-wrap: wrap; overflow-x: visible; }
-  .notifications-content { padding: 0 12px; }
+  .notifications-content {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .notifications-content .data-table {
+    flex: unset;
+    min-width: unset;
+  }
+  .notifications-content > h3 {
+    align-self: center;
+  }
 }
