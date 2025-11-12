@@ -635,3 +635,20 @@ input[type="date"], input[type="time"] {
   margin: 0;
   padding: 0;
 }
+
+/* Asegura que la status-bar no se centre junto al resto del contenedor */
+.admin-root > section > div:first-child .status-bar {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start; /* izquierda -> derecha */
+  align-self: stretch; /* ocupa todo el ancho del contenedor aunque el padre esté centrado */
+  margin: 0 0 8px 0;
+}
+
+/* Si quieres que los botones ocupen solo lo necesario y sigan a la izquierda */
+.admin-root > section > div:first-child .status-bar .demo-btn {
+  margin-right: 8px;
+}
