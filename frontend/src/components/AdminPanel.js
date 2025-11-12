@@ -164,8 +164,62 @@ export default function AdminPanel({ onLogout }) {
     }
   };
 
+  // confirmar y guardar schedule (fecha/hora) para una orden y notificar
+  const confirmScheduleForOrder = (orderId, date, time) => {
+    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'visita_tecnica', visitSchedule: { date, time } } : o));
+    const order = orders.find(o => o.id === orderId);
+    const client = order ? clients.find(c => c.email === order.clientEmail) : null;
+    const phone = client ? client.phone : order?.phone;
+    if (phone) {
+      sendWhatsApp(phone, `Su visita técnica para pedido #${orderId} fue programada para ${date} ${time}.`);
+    }
+    setMessage(`Visita técnica programada para el pedido #${orderId}.`);
+  };
+
+  // confirmar presupuesto: añade items, fija visitSchedule si viene y cambia estado a 'presupuestado'
+  const confirmBudgetForOrder = (orderId, items, note, visitDate, visitTime) => {
+    const total = items.reduce((s, it) => s + (it.total || 0), 0);
+    const newPresupuestoEntry = { items, total, note: note || '', date: new Date().toISOString() };
+    const updated = orders.map(o => {
+      if (o.id !== orderId) return o;
+      const presupuestos = [...(o.presupuestos || []), newPresupuestoEntry];
+      const totalPresupuesto = presupuestos.reduce((s, p) => s + (p.total || 0), 0);
+      return { ...o, presupuestos, totalPresupuesto, status: 'presupuestado', visitSchedule: visitDate && visitTime ? { date: visitDate, time: visitTime } : o.visitSchedule };
+    });
+    setOrders(updated);
+    const order = updated.find(o => o.id === orderId);
+    const client = order ? clients.find(c => c.email === order.clientEmail) : null;
+    const phone = client ? client.phone : order?.phone;
+    if (phone) {
+      sendWhatsApp(phone, `Se agregó un presupuesto al pedido #${orderId}. Total agregado: $${total.toFixed(2)}. Total presupuestos acumulado: $${order.totalPresupuesto.toFixed(2)}.`);
+    }
+    setMessage(`Presupuesto agregado a pedido #${orderId} y notificado por WhatsApp.`);
+  };
+
   const handleStatusChange = (orderId, e) => {
     const newStatus = e.target.value;
+    const order = orders.find(o => o.id === orderId); // <- asegurar que 'order' esté definido
+    // cambiar a visita técnica -> abrir modal para agendar antes de confirmar
+    if (newStatus === 'visita_tecnica') {
+      setScheduleOrder(order);
+      setScheduleDate(order?.visitSchedule?.date || '');
+      setScheduleTime(order?.visitSchedule?.time || '');
+      setScheduleModalOpen(true);
+      return;
+    }
+    // cambiar de visita_tecnica a presupuestado -> abrir modal presupuesto (fecha/hora + items) antes de confirmar
+    if (newStatus === 'presupuestado' && order?.status === 'visita_tecnica') {
+      // abrir modal de presupuesto con la orden (pre-cargar visita si existe)
+      setBudgetOrder(order);
+      setBudgetItems([]);
+      setNewBudgetItem({ desc: '', qty: '', unit: '' });
+      setBudgetNote('');
+      setBudgetVisitDate(order?.visitSchedule?.date || '');
+      setBudgetVisitTime(order?.visitSchedule?.time || '');
+      setBudgetModalOpen(true);
+      return;
+    }
+    // para otros cambios normales
     updateOrder(orderId, newStatus);
   };
 
