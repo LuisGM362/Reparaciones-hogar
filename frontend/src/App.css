@@ -362,12 +362,13 @@ html,body,#root{
   border-collapse:collapse;
   margin-top:8px;
   background:transparent;
-  display: table;           /* usar layout de tabla real */
-  table-layout: fixed;      /* columnas ajustan su ancho al contenedor */
+  display: table;            /* forzar comportamiento tabla en desktop */
+  table-layout: auto;        /* permitir ajuste natural de columnas */
+  box-sizing: border-box;
 }
 .data-table thead th{
-  text-align:center;
-  padding:10px;
+  text-align:left;
+  padding:10px 8px;
   font-size:13px;
   color:var(--gold);
   border-bottom:1px solid rgba(255,255,255,0.04);
@@ -375,9 +376,8 @@ html,body,#root{
   word-break:break-word;
 }
 .data-table tbody td{
-  padding:10px;
+  padding:10px 8px;
   border-bottom:1px solid rgba(255,255,255,0.02);
-  vertical-align:middle;
   color:var(--text);
   font-size:14px;
   white-space:normal;
@@ -660,90 +660,17 @@ header h2, header h3 { text-align:center; }
   .orders-table tbody td:nth-child(3)::before { content: "Cliente"; }
   .orders-table tbody td:nth-child(4)::before { content: "Tel"; }
   .orders-table tbody td:nth-child(5)::before { content: "Estado"; }
-  .orders-table tbody td:nth-child(6)::before { content: "Acciones"; }
+  .orders-table tbody td:nth-child(6)::before { content: "Presupuestos"; }
+  .orders-table tbody td:nth-child(7)::before { content: "Acciones"; }
 
   /* Labels para tabla de clientes (clients-table) */
   .clients-table tbody td:nth-child(1)::before { content: "Nombre"; }
   .clients-table tbody td:nth-child(2)::before { content: "Email"; }
   .clients-table tbody td:nth-child(3)::before { content: "Tel"; }
   .clients-table tbody td:nth-child(4)::before { content: "Dirección"; }
+  .clients-table tbody td:nth-child(5)::before { content: "Acciones"; }
 
-  /* Make selects and buttons full width within card */
-  .orders-table tbody td select.input,
-  .data-table tbody td .btn {
-    width: 100%;
-    box-sizing: border-box;
-  }
-
-  /* center small metadata to the left */
-  .center-cell { text-align: left; }
-
-  /* tighten modal paddings for mobile */
-  .modal { padding: 12px; max-width: 94%; }
-}
-
-/* Mobile centering & card layout fixes */
-@media (max-width: 720px) {
-  /* Asegura que el root del admin ocupe toda la altura y centre su contenido verticalmente */
-  .admin-root{
-    min-height:100vh;
-    display:flex;
-    flex-direction:column;
-  }
-
-  /* Header más compacto para móviles */
-  .admin-root header{
-    padding:10px 12px;
-  }
-  .admin-root header h2{ margin:6px 0; }
-
-  /* Sección principal usa todo el espacio y centra columnas en vertical */
-  .admin-root > section{
-    flex:1;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:flex-start; /* si quieres centrar verticalmente usa center */
-    gap:12px;
-    padding:6px 0 16px;
-    box-sizing:border-box;
-  }
-
-  /* Contenedores internos ocupan 100% con un padding lateral para evitar que el texto quede pegado */
-  .admin-root > section > div:first-child,
-  .admin-root aside{
-    width:100%;
-    max-width:980px;
-    padding:0 12px;
-    box-sizing:border-box;
-  }
-
-  /* Cards: alinear contenido arriba y apilar etiquetas/valores verticalmente */
-  .data-table tbody tr {
-    display:block;
-    margin-bottom:12px;
-    padding:12px;
-  }
-
-  .data-table tbody td {
-    display:flex;
-    flex-direction:column;
-    align-items:flex-start;
-    justify-content:flex-start;
-    padding:8px 6px;
-    white-space:normal;
-  }
-
-  /* etiqueta (::before) como separador encima del valor */
-  .data-table tbody td::before{
-    display:block;
-    margin-bottom:6px;
-    min-width:0;
-    color:#d4c79a;
-    font-weight:700;
-  }
-
-  /* Action buttons en columna (ya estaban) y ocupan ancho completo */
+  /* Apilar botones y que ocupen todo el ancho */
   .data-table tbody td:last-child{
     display:flex;
     flex-direction:column;
@@ -752,10 +679,121 @@ header h2, header h3 { text-align:center; }
   }
   .data-table tbody td .btn{ width:100%; }
 
-  /* Ajuste para que el título/welcome no quede muy abajo */
-  .welcome-special, .title-simple {
-    display:block;
-    margin-top:6px;
-    margin-bottom:8px;
-  }
+  /* ajustar paddings para que no empuje texto hacia abajo */
+  .admin-root > section{ padding-bottom:16px; }
+  .admin-root header h2{ margin-bottom:8px; }
 }
+
+/* Asegurar layout correcto de tablas en escritorio y corregir celdas "corridas" */
+.data-table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:8px;
+  background:transparent;
+  display: table;            /* forzar comportamiento tabla en desktop */
+  table-layout: auto;        /* permitir ajuste natural de columnas */
+  box-sizing: border-box;
+}
+
+/* Forzar comportamiento de thead/tbody/tr/th/td en desktop (evita estilos previos que los conviertan en block) */
+.data-table thead{ display: table-header-group; }
+.data-table tbody{ display: table-row-group; }
+.data-table tr{ display: table-row; }
+.data-table th, .data-table td{ display: table-cell; vertical-align: middle; box-sizing: border-box; }
+
+/* Celdas: alineación y wrapping para evitar que el contenido "salte" fuera de la celda */
+.data-table thead th{
+  text-align:left;
+  padding:10px 8px;
+  font-size:13px;
+  color:var(--gold);
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  white-space:normal;
+  word-break:break-word;
+}
+.data-table tbody td{
+  padding:10px 8px;
+  border-bottom:1px solid rgba(255,255,255,0.02);
+  color:var(--text);
+  font-size:14px;
+  white-space:normal;
+  word-break:break-word;
+}
+
+/* Column centrada */
+.center-cell{ text-align:center; }
+
+/* Limitar ancho de columnas problemáticas (acciones / select) para que no empujen otras celdas */
+.data-table th:nth-child(1), .data-table td:nth-child(1){ width:6%; min-width:48px; max-width:80px; }
+.data-table th:nth-child(6), .data-table td:nth-child(6){ width:12%; min-width:100px; max-width:160px; } /* presupuestos / acciones */
+.data-table th:last-child, .data-table td:last-child{ width:18%; min-width:120px; max-width:260px; }
+
+/* Asegurar selects y botones no rompan layout */
+.data-table td select.input{
+  max-width: 220px;
+  min-width: 120px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.data-table td .btn{
+  white-space:nowrap;
+}
+
+/* --- MÓVIL: convertir a cards solo en <=720px --- */
+/* Mantener el comportamiento de cards que ya implementaste; sólo aquí se aplican */
+@media (max-width: 720px) {
+  .data-table{ display:block; }
+  .data-table thead{ display:none; }
+  .data-table tbody{ display:block; }
+  .data-table tbody tr{
+    display:block;
+    margin-bottom:12px;
+    padding:10px;
+    border-radius:10px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border: 1px solid rgba(255,255,255,0.03);
+  }
+  .data-table tbody td{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    padding:8px 6px;
+  }
+  /* etiqueta ::before en mobile */
+  .data-table tbody td::before{
+    display:block;
+    margin-bottom:6px;
+    color:#d4c79a;
+    font-weight:700;
+  }
+
+  /* labels para orders-table e clients-table (mantener lo que ya tienes) */
+  .orders-table tbody td:nth-child(1)::before { content: "ID"; }
+  .orders-table tbody td:nth-child(2)::before { content: "Descripción"; }
+  .orders-table tbody td:nth-child(3)::before { content: "Cliente"; }
+  .orders-table tbody td:nth-child(4)::before { content: "Tel"; }
+  .orders-table tbody td:nth-child(5)::before { content: "Estado"; }
+  .orders-table tbody td:nth-child(6)::before { content: "Presupuestos"; }
+  .orders-table tbody td:nth-child(7)::before { content: "Acciones"; }
+
+  .clients-table tbody td:nth-child(1)::before { content: "Nombre"; }
+  .clients-table tbody td:nth-child(2)::before { content: "Email"; }
+  .clients-table tbody td:nth-child(3)::before { content: "Tel"; }
+  .clients-table tbody td:nth-child(4)::before { content: "Dirección"; }
+  .clients-table tbody td:nth-child(5)::before { content: "Acciones"; }
+
+  /* Apilar botones y que ocupen todo el ancho */
+  .data-table tbody td:last-child{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    align-items:stretch;
+  }
+  .data-table tbody td .btn{ width:100%; }
+
+  /* ajustar paddings para que no empuje texto hacia abajo */
+  .admin-root > section{ padding-bottom:16px; }
+  .admin-root header h2{ margin-bottom:8px; }
+}
+
+/*
