@@ -162,6 +162,7 @@ html,body,#root{
   letter-spacing:0.4px;
   background:none;
   -webkit-background-clip: initial;
+  background-clip: initial; /* <-- añadir la propiedad estándar para evitar la advertencia */
   text-shadow: 0 1px 0 rgba(0,0,0,0.6);
   padding:0;
   border:0;
@@ -943,7 +944,7 @@ input[type="date"], input[type="time"] {
 /* Servicios: cada tarjeta ocupa 100% del wrapper, con máximo para no tocar bordes */
 .services-list.centered-container .service-item{
   width: 100%;
-  max-width: 860px;
+  max-width:860px;
   display:flex;
   align-items:center;
   justify-content:space-between;

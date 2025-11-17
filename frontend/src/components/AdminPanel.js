@@ -518,14 +518,14 @@ export default function AdminPanel({ onLogout }) {
             <div className="intro-text">Lista de servicios disponibles</div>
           </div>
 
-          {/* botón centrado que abre modal para nuevo servicio */}
-          <div style={{ display: 'flex', justifyContent: 'center', marginTop: 12 }}>
+          {/* botón centrado arriba del listado */}
+          <div style={{ display: 'flex', justifyContent: 'center', margin: '12px 0' }}>
             <button className="btn submit-btn btn-plus" onClick={openServiceModal} aria-label="Nuevo servicio">
               <span className="plus-icon" aria-hidden="true">＋</span>&nbsp;Nuevo servicio
             </button>
           </div>
 
-          <div className="services-list centered-container" style={{ marginTop: 12 }}>
+          <div className="services-list centered-container" style={{ marginTop: 6 }}>
             {services.map((s, i) => (
               <div key={i} className="service-item">
                 <div className="service-label">{s}</div>
