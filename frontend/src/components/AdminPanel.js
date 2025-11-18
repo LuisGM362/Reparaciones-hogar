@@ -21,29 +21,21 @@ function sendWhatsApp(phone, message) {
 }
 
 export default function AdminPanel({ onLogout }) {
+  // demo clients (asegúrate no duplicar si ya existen)
   const [clients, setClients] = useState([
-    {
-      email: 'cliente1@example.com',
-      password: 'cliente123',
-      phone: '3410001111',
-      fullName: 'Cliente Uno',
-      lastName: 'Apellido1',
-      address: { locality: 'Rosario', street: 'San Martín', number: '123', type: 'casa', floor: '', door: '' }
-    },
-    {
-      email: 'cliente2@example.com',
-      password: 'cliente123',
-      phone: '3410002222',
-      fullName: 'Cliente Dos',
-      lastName: 'Apellido2',
-      address: { locality: 'Rosario', street: 'Mitre', number: '456', type: 'departamento', floor: '2', door: 'B' }
-    },
+    { email: 'juan@example.com', firstName: 'Juan', lastName: 'Pérez', phone: '3411111111', address: { locality: 'Rosario', street: 'Córdoba', number: '123', type: 'casa' } },
+    { email: 'maría@example.com', firstName: 'María', lastName: 'Gómez', phone: '3412222222', address: { locality: 'Roldán', street: 'Belgrano', number: '45', type: 'departamento', floor: '2', door: 'B' } },
+    { email: 'ana@example.com', firstName: 'Ana', lastName: 'López', phone: '3413333333', address: { locality: 'Funes', street: 'San Martín', number: '88', type: 'casa' } },
   ]);
 
+  // demo orders / notificaciones para la demo — uno por cada tipo de estado
   const [orders, setOrders] = useState([
-    { id: 1, clientEmail: 'cliente1@example.com', phone: '3410001111', status: 'pendiente', description: 'Reparación de bomba' },
-    { id: 2, clientEmail: 'cliente2@example.com', phone: '3410002222', status: 'visita_tecnica', description: 'Instalación de calefón' },
-    { id: 3, clientEmail: 'cliente1@example.com', phone: '3410001111', status: 'presupuestado', description: 'Fuga de gas' },
+    { id: 101, clientEmail: 'juan@example.com', phone: '3411111111', description: 'Reparación de pileta', status: 'pendiente', visitSchedule: null, address: clients[0]?.address },
+    { id: 102, clientEmail: 'maría@example.com', phone: '3412222222', description: 'Instalación de equipo de refrigeración', status: 'visita_tecnica', visitSchedule: { date: '2025-11-25', time: '10:30' }, address: clients[1]?.address },
+    { id: 103, clientEmail: 'ana@example.com', phone: '3413333333', description: 'Cotización pintura living', status: 'presupuestado', visitSchedule: { date: '2025-11-27', time: '15:00' }, address: clients[2]?.address },
+    { id: 104, clientEmail: 'juan@example.com', phone: '3411111111', description: 'Revisión gas', status: 'rechazado', visitSchedule: null, address: clients[0]?.address },
+    { id: 105, clientEmail: 'ana@example.com', phone: '3413333333', description: 'Urgencia plomería', status: 'urgencia', visitSchedule: null, address: clients[2]?.address },
+    { id: 106, clientEmail: 'maría@example.com', phone: '3412222222', description: 'Tarea completada: instalación eléctrica', status: 'completado', visitSchedule: null, address: clients[1]?.address },
   ]);
 
   const [activeStatus, setActiveStatus] = useState('pendiente');
@@ -348,6 +340,21 @@ export default function AdminPanel({ onLogout }) {
     setMessage(memberId ? 'Miembro asignado al pedido.' : 'Asignación removida.');
   };
 
+  // helper para formatear domicilio (reuse)
+  const formatAddress = (addr = {}) => {
+    if (!addr) return '-';
+    const parts = [];
+    if (addr.locality) parts.push(addr.locality);
+    const streetPart = [addr.street, addr.number].filter(Boolean).join(' ');
+    if (streetPart) parts.push(streetPart);
+    if (addr.type === 'departamento') {
+      parts.push(`Depto · Piso ${addr.floor || '-'} · Puerta ${addr.door || '-'}`);
+    } else if (addr.type) {
+      parts.push(addr.type);
+    }
+    return parts.join(' · ');
+  };
+
   return (
     <div className="admin-root" style={{ padding: 20 }}>
       <header style={{ textAlign: 'center', marginBottom: 18 }}>
@@ -426,26 +433,30 @@ export default function AdminPanel({ onLogout }) {
                         </div>
 
                         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
-                          <div style={{ color: 'var(--text)', fontSize: 13, flex: '1 1 60%' }}>
-                            <strong>Dirección:</strong> {direccion}
+                          <div style={{ color: 'var(--text)', fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: 'var(--gold)', flexShrink: 0 }} />
+                            {o.status === 'presupuestado' && o.totalPresupuesto > 0 && (
+                              <div style={{ fontWeight: 700, color: 'var(--gold)', fontSize: 14 }}>
+                                ${o.totalPresupuesto.toFixed(2)}
+                              </div>
+                            )}
                           </div>
-                          <div style={{ minWidth: 160 }}>
-                            <select value={o.status} onChange={(e) => handleStatusChange(o.id, e)} className="input" style={{ minWidth: 160 }}>
-                              {STATUS_LIST.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
+
+                          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                            <select
+                              value={o.status}
+                              onChange={(e) => handleStatusChange(o.id, e)}
+                              className="input"
+                              style={{ padding: '6px 8px', borderRadius: 4, background: 'rgba(255,255,255,0.04)', color: 'var(--text)', minWidth: 120 }}
+                            >
+                              {STATUS_LIST.map(s => (
+                                <option key={s.key} value={s.key}>{s.label}</option>
+                              ))}
                             </select>
-                          </div>
-                        </div>
 
-                        {/* Si es visita técnica mostrar fecha/hora */}
-                        {o.status === 'visita_tecnica' && visitInfo && (
-                          <div style={{ color: '#cfc6b0', fontSize: 13 }}>
-                            <strong>Visita programada:</strong> {visitInfo}
+                            <button className="btn demo-btn" onClick={() => sendWhatsApp(client ? client.phone : o.phone, `Consulta sobre pedido #${o.id}`)}>Contactar</button>
+                            {o.status === 'presupuestado' && <button className="btn submit-btn" onClick={() => openBudgetModal(o)}>Agregar presupuesto</button>}
                           </div>
-                        )}
-
-                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                          <button className="btn demo-btn" onClick={() => sendWhatsApp(client ? client.phone : o.phone, `Consulta sobre pedido #${o.id}`)}>Contactar</button>
-                          {o.status === 'presupuestado' && <button className="btn submit-btn" onClick={() => openBudgetModal(o)}>Agregar presupuesto</button>}
                         </div>
                       </div>
                     </div>
@@ -459,54 +470,39 @@ export default function AdminPanel({ onLogout }) {
 
       {activeTab === 'clients' && (
         <section style={{ marginTop: 16 }}>
-          <div style={{ marginBottom: 12 }}>
-            <h3 style={{ margin: 0, color: 'var(--text)', textAlign: 'center' }}>Clientes ({clients.length})</h3>
+          <h3 style={{ textAlign: 'center', color: 'var(--text)' }}>Clientes</h3>
+
+          <div className="tab-intro" style={{ marginTop: 8 }}>
+            <div className="intro-text">Lista de clientes registrados</div>
           </div>
 
-          <div style={{ width: '100%', boxSizing: 'border-box' }}>
-            <table className="data-table clients-table">
-              <thead>
-                <tr>
-                  <th>Nombre completo</th>
-                  <th>Email</th>
-                  <th>Tel</th>
-                  <th>Dirección</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {clients.map(c => {
-                  const addr = c.address || {};
-                  const direccion = `${addr.locality || ''}${addr.locality ? ', ' : ''}${addr.street || ''} ${addr.number || ''}` +
-                    (addr.type === 'departamento' ? ` · Piso ${addr.floor || '-'} · Puerta ${addr.door || '-'}` : ` · ${addr.type || 'Casa'}`);
-                  return (
-                    <tr key={c.email}>
-                      <td className="center-cell">{c.fullName} {c.lastName}</td>
-                      <td className="center-cell">{c.email}</td>
-                      <td className="center-cell">{c.phone}</td>
-                      <td>{direccion}</td>
-                      <td className="center-cell">
-                        <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
-                          <button className="btn demo-btn" onClick={() => contactClient(c)}>Contactar</button>
-                          <button
-                            className="btn submit-btn"
-                            onClick={() => openClientModal(c)}
-                            title="Editar cliente"
-                          >
-                            Editar
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+          <div style={{ display: 'flex', justifyContent: 'center', margin: '12px 0' }}>
+            <button className="btn submit-btn btn-plus clients-new-btn" onClick={() => openClientModal(null)} aria-label="Nuevo cliente">
+              <span className="plus-icon" aria-hidden="true">＋</span>&nbsp;Nuevo cliente
+            </button>
+          </div>
 
-            {/* Agregar nuevo cliente: ubicado debajo de la tabla (centrado) */}
-            <div style={{ marginTop: 12, textAlign: 'center' }}>
-              <button className="btn submit-btn" onClick={() => openClientModal(null)}>Agregar nuevo cliente</button>
-            </div>
+          <div className="clients-list" style={{ marginTop: 6 }}>
+            {clients.map(c => {
+              const fullName = `${c.firstName || ''} ${c.lastName || ''}`.trim() || c.fullName || c.email;
+              const address = formatAddress(c.address || {});
+              return (
+                <div key={c.email} className="client-item">
+                  <div className="client-main">
+                    <div className="client-row">
+                      <div className="client-name">{fullName}</div>
+                      <div className="client-contact">{c.phone} · {c.email}</div>
+                    </div>
+                    <div className="client-address">
+                      <strong>Domicilio:</strong> {address}
+                    </div>
+                  </div>
+                  <div className="client-actions">
+                    <button className="btn demo-btn" onClick={() => openClientModal(c)}>Editar</button>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </section>
       )}
@@ -518,14 +514,14 @@ export default function AdminPanel({ onLogout }) {
             <div className="intro-text">Lista de servicios disponibles</div>
           </div>
 
-          {/* botón centrado arriba del listado */}
-          <div style={{ display: 'flex', justifyContent: 'center', margin: '12px 0' }}>
+          {/* botón centrado que abre modal para nuevo servicio */}
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: 12 }}>
             <button className="btn submit-btn btn-plus" onClick={openServiceModal} aria-label="Nuevo servicio">
               <span className="plus-icon" aria-hidden="true">＋</span>&nbsp;Nuevo servicio
             </button>
           </div>
 
-          <div className="services-list centered-container" style={{ marginTop: 6 }}>
+          <div className="services-list centered-container" style={{ marginTop: 12 }}>
             {services.map((s, i) => (
               <div key={i} className="service-item">
                 <div className="service-label">{s}</div>

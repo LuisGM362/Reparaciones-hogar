@@ -213,6 +213,46 @@ html,body,#root{
   border-color:var(--gold);
 }
 
+/* Dropdown / select oscuro con texto dorado */
+.input,
+select,
+select.input {
+  background-color: #0b0b0b; /* fondo negro */
+  color: #d4c79a;            /* dorado claro para texto */
+  border: 1px solid rgba(212,175,55,0.12);
+  padding: 8px 10px;
+  border-radius: 6px;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* Asegurar que el pseudo-indicador no opaque el texto (para browsers que lo soportan) */
+select::-ms-expand { display: none; }
+
+/* Opciones (puede verse distinto según el browser, pero ayuda en muchos casos) */
+select option {
+  background-color: #0b0b0b;
+  color: #d4c79a;
+}
+
+/* Si usas select dentro de tablas/filas, forzar altura consistente */
+select.input, .input[type="select"] { height: 38px; }
+
+/* Acento dorado para texto dentro de menús desplegables custom */
+.select-wrapper {
+  position: relative;
+}
+.select-wrapper::after{
+  content: "▾";
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #d4c79a;
+}
+
 /* Botones */
 .btn{
   cursor:pointer;
@@ -1017,4 +1057,94 @@ input[type="date"], input[type="time"] {
 @media (max-width:480px){
   .btn-plus { padding:10px 12px; font-size:14px; }
   .btn-plus .plus-icon { width:20px; height:20px; font-size:16px; border-radius:6px; }
+}
+
+/* Asegurar que los botones "Nuevo ..." (btn-plus) queden centrados en cualquier contenedor */
+.btn-plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  /* centrar incluso si el padre es flex con justify-content:left */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Si el botón está dentro de un wrapper (div) que ocupa ancho completo, forzar centrar */
+.admin-root section > div,
+.admin-root section > .centered-container {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Si el wrapper usa display:flex y obliga alineación a la izquierda, forzar centrado */
+.admin-root section > div,
+.admin-root section > .centered-container {
+  display: block;
+}
+.admin-root section .btn-plus {
+  display: block;
+  margin: 12px auto;
+}
+
+/* Ajustes responsive: mantener centrado y tamaño cómodo en móvil */
+@media (max-width: 480px) {
+  .btn-plus {
+    width: auto;
+    padding: 10px 14px;
+    margin: 10px auto;
+  }
+}
+
+/* pequeños ajustes visuales del icono + */
+.btn-plus .plus-icon {
+  display:inline-block;
+  font-weight:700;
+  line-height:1;
+}
+
+/* Clients list: ocupar todo el ancho de la pantalla (desktop y móvil) */
+.clients-list{
+  width: 100%;
+  max-width: none;       /* no limitar a centered max width */
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 6px 12px;     /* proteger de los bordes del viewport */
+  box-sizing: border-box;
+}
+
+/* Cada fila/entrada de cliente ocupa 100% dentro del listado */
+.client-item{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.03);
+  box-sizing: border-box;
+}
+
+/* Contenido principal a la izquierda, acciones a la derecha */
+.client-main{ display:flex; flex-direction:column; gap:4px; align-items:flex-start; }
+.client-name{ font-weight:700; color:var(--text); }
+.client-contact{ color:#dcd4c2; font-size:13px; }
+
+/* Nuevo cliente: botón centrado y consistente */
+.clients-new-btn{
+  margin-left: auto;
+  margin-right: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Responsive: en pantallas pequeñas se mantiene el ancho completo y se apila contenido si falta espacio */
+@media (max-width: 720px){
+  .client-item{ flex-direction: column; align-items: stretch; }
+  .client-actions{ display:flex; justify-content:flex-end; margin-top:8px; }
 }
